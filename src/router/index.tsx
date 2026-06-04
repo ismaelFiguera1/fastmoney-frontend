@@ -2,6 +2,7 @@ import React from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
 import Auth from '../pages/Auth'
+import Dashboard from '../pages/Dashboard'
 import ProtectedRoute from './ProtectedRoute'
 
 export const router = createBrowserRouter([
@@ -23,31 +24,31 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.DASHBOARD,
-        element: <div>Dashboard</div>,
+        element: <Dashboard />,
       },
       {
         path: ROUTES.TRANSFER,
-        element: <div>Transfer</div>,
+        element: <div className="p-8"><h1 className="text-2xl font-bold">Transferencias</h1></div>,
       },
       {
         path: ROUTES.DEPOSIT,
-        element: <div>Deposit</div>,
+        element: <div className="p-8"><h1 className="text-2xl font-bold">Depósitos</h1></div>,
       },
       {
         path: ROUTES.EXCHANGE,
-        element: <div>Exchange</div>,
+        element: <div className="p-8"><h1 className="text-2xl font-bold">Tasas de Cambio</h1></div>,
       },
       {
         path: ROUTES.HISTORY,
-        element: <div>History</div>,
+        element: <div className="p-8"><h1 className="text-2xl font-bold">Movimientos</h1></div>,
       },
       {
         path: ROUTES.SAVINGS,
-        element: <div>Savings</div>,
+        element: <div className="p-8"><h1 className="text-2xl font-bold">Ahorros</h1></div>,
       },
       {
         path: ROUTES.PROFILE,
-        element: <div>Profile</div>,
+        element: <div className="p-8"><h1 className="text-2xl font-bold">Mi Perfil</h1></div>,
       },
     ],
   },
