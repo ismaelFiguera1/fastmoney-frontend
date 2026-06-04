@@ -1,7 +1,8 @@
 import React from 'react'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
 import { useAuthStore } from '../store/auth.store'
+import AppLayout from '../components/layout/AppLayout'
 
 function ProtectedRoute() {
   const { token } = useAuthStore()
@@ -10,7 +11,7 @@ function ProtectedRoute() {
     return <Navigate to={ROUTES.LOGIN} replace />
   }
 
-  return <Outlet />
+  return <AppLayout />
 }
 
 export default ProtectedRoute
