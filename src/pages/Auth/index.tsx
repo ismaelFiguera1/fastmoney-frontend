@@ -29,11 +29,33 @@ function Auth() {
     if (!form.email || !form.password) return setError('Completá todos los campos')
     try {
       setLoading(true)
+      
+      // BYPASS DE DESARROLLO (Prueba sin Backend)
+      if (form.email === 'test@email.com') {
+        const mockUser = {
+          id: 'mock-user-123',
+          name: 'Juanda',
+          lastName: 'Pérez',
+          email: 'test@email.com',
+          moneda: 'USD',
+          saldo: 1250.00,
+          saldoAhorrado: 2500.00,
+          metaAhorro: 10000.00,
+          movimientos: [] // Si está vacío se mostrarán movimientos de prueba, si tiene datos mostrará los reales
+        }
+        setAuth('mock-token-development-only', mockUser)
+        navigate(ROUTES.DASHBOARD)
+        return
+      }
+
       const data = await authService.login(form.email, form.password)
       setAuth(data.token, data.user)
       navigate(ROUTES.DASHBOARD)
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión')
+      setError(
+        err.response?.data?.message || 
+        'Error al iniciar sesión. Tip: podés usar "test@email.com" para entrar en modo prueba sin backend.'
+      )
     } finally {
       setLoading(false)
     }
@@ -207,7 +229,7 @@ function Auth() {
         <button
           onClick={isLogin ? handleLogin : handleRegister}
           disabled={loading}
-          className="w-full text-white font-bold py-3 rounded-xl text-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
+          className="w-full text-white font-bold py-3 rounded-xl text-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-60 cursor-pointer"
           style={{ background: 'linear-gradient(135deg, #9333ea, #c026d3)', boxShadow: '0 4px 18px rgba(147,51,234,0.3)' }}>
           {loading ? 'Cargando...' : isLogin ? 'Ingresar a FastMoney' : 'Crear cuenta gratis'}
         </button>
