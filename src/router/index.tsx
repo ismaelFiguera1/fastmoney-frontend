@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
 import Auth from '../pages/Auth'
 import Dashboard from '../pages/Dashboard'
+import Movimientos from '../pages/Movimientos'
 import ProtectedRoute from './ProtectedRoute'
 
 export const router = createBrowserRouter([
@@ -40,7 +41,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.HISTORY,
-        element: <div className="p-8"><h1 className="text-2xl font-bold">Movimientos</h1></div>,
+        element: <Movimientos />,
       },
       {
         path: ROUTES.SAVINGS,
