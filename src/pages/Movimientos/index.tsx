@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuthStore } from '../store/auth.store' // Ajusta la ruta según tu proyecto
-import { ROUTES } from ''       // Ajusta la ruta según tu proyecto
+import { useAuthStore } from '../../store/auth.store' // Ajusta la ruta según tu proyecto
+import { ROUTES } from '../../constants/routes'    // Ajusta la ruta según tu proyecto
 import { 
   ArrowUpRight, 
   ArrowDownLeft, 
