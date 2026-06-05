@@ -27,6 +27,7 @@ function Auth() {
 
   const handleLogin = async () => {
     if (!form.email || !form.password) return setError('Completá todos los campos')
+    if (form.password.length < 8) return setError('La contraseña debe tener al menos 8 caracteres')
     try {
       setLoading(true)
       
@@ -70,9 +71,8 @@ function Auth() {
       return setError('Las contraseñas no coinciden')
     try {
       setLoading(true)
-      const data = await authService.register(form.name, form.lastName, form.email, form.password)
-      setAuth(data.token, data.user)
-      navigate(ROUTES.DASHBOARD)
+      await authService.register(form.name, form.lastName, form.email, form.password)
+      setIsLogin(true)
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al registrarse')
     } finally {
