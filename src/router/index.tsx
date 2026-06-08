@@ -5,6 +5,7 @@ import Auth from '../pages/Auth'
 import Dashboard from '../pages/Dashboard'
 import Movimientos from '../pages/Movimientos'
 import ProtectedRoute from './ProtectedRoute'
+import Transferencias from '../pages/Transferencias/transferencias'
 
 export const router = createBrowserRouter([
   {
@@ -29,7 +30,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.TRANSFER,
-        element: <div className="p-8"><h1 className="text-2xl font-bold">Transferencias</h1></div>,
+        element: <Transferencias />,
       },
       {
         path: ROUTES.DEPOSIT,
