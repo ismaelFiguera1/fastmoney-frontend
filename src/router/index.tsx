@@ -6,6 +6,7 @@ import Dashboard from '../pages/Dashboard'
 import Movimientos from '../pages/Movimientos'
 import ProtectedRoute from './ProtectedRoute'
 import Transferencias from '../pages/Transferencias/transferencias'
+import Perfil from '../pages/Perfil'
 
 export const router = createBrowserRouter([
   {
@@ -50,7 +51,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.PROFILE,
-        element: <div className="p-8"><h1 className="text-2xl font-bold">Mi Perfil</h1></div>,
+        element: <Perfil />,
       },
     ],
   },

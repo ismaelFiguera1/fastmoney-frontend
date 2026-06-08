@@ -18,9 +18,10 @@ function Auth() {
     email: '',
     password: '',
     confirmPassword: '',
+    moneda: 'USD',
   })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
     setError(null)
   }
@@ -63,7 +64,7 @@ function Auth() {
   }
 
   const handleRegister = async () => {
-    if (!form.name || !form.lastName || !form.email || !form.password || !form.confirmPassword)
+    if (!form.name || !form.lastName || !form.email || !form.password || !form.confirmPassword || !form.moneda)
       return setError('Completá todos los campos')
     if (form.password.length < 8)
       return setError('La contraseña debe tener al menos 8 caracteres')
@@ -71,7 +72,7 @@ function Auth() {
       return setError('Las contraseñas no coinciden')
     try {
       setLoading(true)
-      await authService.register(form.name, form.lastName, form.email, form.password)
+      await authService.register(form.name, form.lastName, form.email, form.password, form.moneda)
       setIsLogin(true)
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al registrarse')
@@ -215,6 +216,27 @@ function Auth() {
             <input name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange}
               className="w-full bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition"
               placeholder="Repetí tu contraseña" />
+          </div>
+        )}
+
+        {/* Selección de Divisa Principal */}
+        {!isLogin && (
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Moneda Principal</label>
+            <div className="relative">
+              <select name="moneda" value={form.moneda} onChange={handleChange}
+                className="w-full bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 pr-10 text-sm text-gray-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition appearance-none cursor-pointer">
+                <option value="USD">🇺🇸 USD (Dólar Estadounidense)</option>
+                <option value="EUR">🇪🇺 EUR (Euro)</option>
+                <option value="COP">🇨🇴 COP (Peso Colombiano)</option>
+                <option value="ARS">🇦🇷 ARS (Peso Argentino)</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-purple-600">
+                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                </svg>
+              </div>
+            </div>
           </div>
         )}
 
