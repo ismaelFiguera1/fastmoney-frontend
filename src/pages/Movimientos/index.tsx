@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useAuthStore } from "../../store/auth.store"; // Ajusta la ruta según tu proyecto
-import { ROUTES } from "../../constants/routes"; // Ajusta la ruta según tu proyecto
+import { useAuthStore } from "../../store/auth.store";
+import { ROUTES } from "../../constants/routes";
 import {
   ArrowUpRight,
   ArrowDownLeft,
@@ -13,6 +13,7 @@ import {
   Plus,
 } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
+import { walletService } from "../../services/wallet.service";
 
 // --- Tipados e Interfaces ---
 interface Transaction {
@@ -24,8 +25,8 @@ interface Transaction {
   amount: string;
   displayAmount?: string; // Para swaps detallados
   status: "Completado" | "Pendiente";
-  monthGroup: "JUNIO 2026" | "MAYO 2026";
-  currency: "USD" | "EUR" | "ARS" | "COP";
+  monthGroup?: string;
+  currency: string;
 }
 
 interface MovimientosProps {
@@ -59,112 +60,105 @@ export default function Movimientos({
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
 
-  // --- Listado Base de Transacciones ---
-  // Si tu backend ya inyecta movimientos en el user, se mapean aquí. Si no, usamos el mock premium solicitado.
-  const allTransactions: Transaction[] = useMemo(() => {
-    if (user?.movimientos && user.movimientos.length > 0) {
-      return user.movimientos;
-    }
+  // Estados para manejo de datos reales
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    return [
-      {
-        id: "1",
-        type: "ENVIADO",
-        title: "Enviado a María García",
-        description: "USD → COP · Comisión 0.5 USD",
-        time: "Hoy, 10:32",
-        amount: "-$250.00",
-        status: "Completado",
-        monthGroup: "JUNIO 2026",
-        currency: "USD",
-      },
-      {
-        id: "2",
-        type: "RECIBIDO",
-        title: "Recibido de Carlos López",
-        description: "EUR",
-        time: "Ayer, 18:05",
-        amount: "+$180.00",
-        status: "Completado",
-        monthGroup: "JUNIO 2026",
-        currency: "EUR",
-      },
-      {
-        id: "3",
-        type: "SWAP",
-        title: "Swap USD → COP",
-        description: "03/06, 09:30",
-        amount: "$500.00",
-        displayAmount: "$500 → $2.060.000 COP",
-        status: "Completado",
-        monthGroup: "JUNIO 2026",
-        currency: "USD",
-      },
-      {
-        id: "4",
-        type: "ENVIADO",
-        title: "Enviado a Pedro Ruiz",
-        description: "USD",
-        time: "02/06, 14:20",
-        amount: "-$100.00",
-        status: "Pendiente",
-        monthGroup: "JUNIO 2026",
-        currency: "USD",
-      },
-      {
-        id: "5",
-        type: "DEPOSITO",
-        title: "Depósito de saldo",
-        description: "01/06, 08:00",
-        amount: "+$1,000.00",
-        status: "Completado",
-        monthGroup: "JUNIO 2026",
-        currency: "USD",
-      },
-      {
-        id: "6",
-        type: "ENVIADO",
-        title: "Pago suscripción Netflix",
-        description: "Tarjeta Virtual",
-        time: "28/05, 22:15",
-        amount: "-$15.99",
-        status: "Completado",
-        monthGroup: "MAYO 2026",
-        currency: "USD",
-      },
-      {
-        id: "7",
-        type: "RECIBIDO",
-        title: "Nómina FastMoney Corp",
-        description: "Nómina Mayo",
-        time: "25/05, 09:00",
-        amount: "+$2,500.00",
-        status: "Completado",
-        monthGroup: "MAYO 2026",
-        currency: "USD",
-      },
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        setLoading(true);
+        const data = await walletService.getTransactionHistory();
+        setTransactions(data);
+        setError(null);
+      } catch (err) {
+        setError("Error al cargar los movimientos");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, []);
+
+  // Mostrar estado de carga o error
+  if (loading) {
+    if (isCompact) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center justify-center min-h-[400px] h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    if (isCompact) {
+      return (
+        <div className="bg-red-50 border border-red-100 text-red-700 px-4 py-3 rounded-2xl text-xs font-semibold text-center my-4">
+          {error}
+        </div>
+      );
+    }
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl shadow-sm max-w-lg mx-auto mt-12 flex flex-col items-center gap-3">
+          <svg className="w-12 h-12 text-red-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span className="font-bold text-lg">Error al cargar movimientos</span>
+          <p className="text-sm text-center text-red-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Helper para agrupar por mes ---
+  const getMonthGroup = (timeStr: string): string => {
+    if (!timeStr) return "OTRO";
+    const date = new Date(timeStr);
+    if (isNaN(date.getTime())) {
+      return timeStr.toUpperCase();
+    }
+    const months = [
+      "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
+      "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"
     ];
-  }, [user]);
+    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  // --- Listado Base de Transacciones ordenadas por fecha ---
+  const allTransactions: Transaction[] = [...transactions].sort((a, b) => {
+    const timeA = new Date(a.time).getTime();
+    const timeB = new Date(b.time).getTime();
+    if (isNaN(timeA) || isNaN(timeB)) return 0;
+    return timeB - timeA;
+  });
 
   // --- Lógica de Filtrado ---
-  const filteredTransactions = useMemo(() => {
-    return allTransactions.filter((tx) => {
-      const matchesSearch =
-        tx.title.toLowerCase().includes(search.toLowerCase()) ||
-        (tx.description &&
-          tx.description.toLowerCase().includes(search.toLowerCase()));
+  const filteredTransactions = allTransactions.filter((tx) => {
+    const matchesSearch =
+      tx.title.toLowerCase().includes(search.toLowerCase()) ||
+      (tx.description &&
+        tx.description.toLowerCase().includes(search.toLowerCase()));
 
-      const matchesType = typeFilter === "Todos" || tx.type === typeFilter;
-      const matchesCurrency =
-        currencyFilter === "Todas" || tx.currency === currencyFilter;
+    const matchesType = typeFilter === "Todos" || tx.type === typeFilter;
+    const matchesCurrency =
+      currencyFilter === "Todas" || tx.currency === currencyFilter;
 
-      return matchesSearch && matchesType && matchesCurrency;
-    });
-  }, [allTransactions, search, typeFilter, currencyFilter]);
+    return matchesSearch && matchesType && matchesCurrency;
+  });
 
-  const limitedTxs = useMemo(() => {
-    return limit ? filteredTransactions.slice(0, limit) : filteredTransactions;
-  }, [filteredTransactions, limit]);
+  const limitedTxs = limit
+    ? filteredTransactions.slice(0, limit)
+    : filteredTransactions;
 
   return (
     <div
@@ -394,8 +388,12 @@ export default function Movimientos({
 
       {/* LISTADO AGRUPADO POR MESES */}
       <div className="space-y-8">
-        {(["JUNIO 2026", "MAYO 2026"] as const).map((mes) => {
-          const txsDelMes = limitedTxs.filter((t) => t.monthGroup === mes);
+        {Array.from(
+          new Set(limitedTxs.map((t) => t.monthGroup || getMonthGroup(t.time)))
+        ).map((mes) => {
+          const txsDelMes = limitedTxs.filter(
+            (t) => (t.monthGroup || getMonthGroup(t.time)) === mes
+          );
           if (txsDelMes.length === 0) return null;
 
           return (

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "../../store/auth.store";
 import { ROUTES } from "../../constants/routes";
 import Movimientos from "../Movimientos";
+import { walletService } from "../../services/wallet.service";
+import { useEffect } from "react";
 
 function Dashboard() {
   const { user } = useAuthStore();
@@ -19,10 +21,40 @@ function Dashboard() {
   );
   const [isBalanceHidden, setIsBalanceHidden] = useState(false);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+  const [balance, setBalance] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const balanceRes = await walletService.getBalance();
+
+        // Procesar el balance según la moneda del usuario (case-insensitive)
+        const userBalance =
+          balanceRes.find(
+            (b) => b.currency.toUpperCase() === (user?.moneda || "USD").toUpperCase()
+          )?.balance || 0;
+
+        setBalance(userBalance);
+        setError(null);
+      } catch (err) {
+        setError("Error al cargar los datos del balance");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
 
   // Leemos datos reales de la sesión
   const userName = user?.name || user?.nombre || "Usuario";
-  const userRealSaldo = user?.saldo !== undefined ? user?.saldo : 0;
+  const userRealSaldo = balance !== undefined ? balance : 0;
   const userRealSavings =
     user?.saldoAhorrado !== undefined
       ? user?.saldoAhorrado
@@ -62,84 +94,28 @@ function Dashboard() {
     });
   };
 
-  // Lista de últimos movimientos. Si el backend ya provee movimientos reales los renderiza, sino, usa los ilustrativos.
-  const transactions =
-    user?.movimientos && user.movimientos.length > 0
-      ? user.movimientos
-      : [
-          {
-            id: 1,
-            title: "Enviado a María García",
-            time: "Hoy, 10:32",
-            amount: "-$250.00",
-            status: "Completada",
-            icon: (
-              <svg
-                className="w-5 h-5 text-red-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M16 12H4m12 0l-4-4m4 4l-4 4"
-                />
-              </svg>
-            ),
-            bg: "bg-red-50",
-            color: "text-red-600",
-          },
-          {
-            id: 2,
-            title: "Recibido de Carlos López",
-            time: "Ayer, 18:15",
-            amount: "+€180.00",
-            status: "Completada",
-            icon: (
-              <svg
-                className="w-5 h-5 text-green-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M8 12h12M8 12l4-4m-4 4l4 4"
-                />
-              </svg>
-            ),
-            bg: "bg-green-50",
-            color: "text-green-600",
-          },
-          {
-            id: 3,
-            title: "Swap USD ➔ ARS",
-            time: "03/06, 09:00",
-            amount: "$500 ➔ $450K",
-            status: "Completada",
-            icon: (
-              <svg
-                className="w-5 h-5 text-blue-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                />
-              </svg>
-            ),
-            bg: "bg-blue-50",
-            color: "text-amber-600",
-          },
-        ];
+  // Manejo de estados de carga y error
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl shadow-sm max-w-lg mx-auto mt-12 flex flex-col items-center gap-3">
+          <svg className="w-12 h-12 text-red-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span className="font-bold text-lg">Error al cargar datos</span>
+          <p className="text-sm text-center text-red-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   // Porcentaje de ahorro respecto a la meta
   const savingsPercentage = Math.min(
@@ -281,7 +257,7 @@ function Dashboard() {
               </span>
             </div>
           </div>
-
+          //
           {/* Selector de divisa */}
           <div className="mt-4 relative self-start">
             <button
