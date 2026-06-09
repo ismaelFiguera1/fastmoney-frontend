@@ -21,8 +21,9 @@ export interface Transaction {
 export const walletService = {
   // GET /wallets/balance
   getBalance: async (): Promise<WalletBalance[]> => {
-    const response = await api.get('/wallets/balance')
-    return response.data
+    const response = await api.get('/api/wallet/balance')
+    const { saldos } = response.data
+    return [{ id: 'total', currency: saldos.monedaBase, balance: saldos.saldoTotal }]
   },
 
   // GET /transactions/history

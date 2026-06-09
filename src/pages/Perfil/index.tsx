@@ -40,6 +40,7 @@ export default function Perfil() {
   const userEmail = user?.email || "usuario@fastmoney.com";
   const preferredCurrency = (user?.moneda || "USD").toUpperCase();
   const userInitial = userName.charAt(0).toUpperCase();
+  const codigoCuenta = user?.codigoCuenta || "sin-código";
 
   if (loading) {
     return (
@@ -136,9 +137,9 @@ export default function Perfil() {
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-400 font-semibold">
-                          <span>N°: {wallet.id}</span>
+                          <span>N°: {codigoCuenta}</span>
                           <button
-                            onClick={() => handleCopy(wallet.id)}
+                            onClick={() => handleCopy(codigoCuenta)}
                             className="text-purple-600 hover:text-purple-700 hover:underline flex items-center gap-1 cursor-pointer active:scale-95"
                           >
                             {isCopied ? "¡Copiado!" : "Copiar"}
