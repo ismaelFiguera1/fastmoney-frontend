@@ -13,7 +13,7 @@ import {
   Plus,
 } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
-import { walletService } from "../../services/wallet.service";
+import { transferenciaService } from "../../services/transactions.service";
 
 // --- Tipados e Interfaces ---
 interface Transaction {
@@ -69,7 +69,7 @@ export default function Movimientos({
     const fetchTransactions = async () => {
       try {
         setLoading(true);
-        const data = await walletService.getTransactionHistory();
+        const data = await transferenciaService.getTransactionHistory();
         setTransactions(data);
         setError(null);
       } catch (err) {
@@ -110,8 +110,18 @@ export default function Movimientos({
     return (
       <div className="p-8">
         <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl shadow-sm max-w-lg mx-auto mt-12 flex flex-col items-center gap-3">
-          <svg className="w-12 h-12 text-red-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <svg
+            className="w-12 h-12 text-red-500 animate-pulse"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
           <span className="font-bold text-lg">Error al cargar movimientos</span>
           <p className="text-sm text-center text-red-600">{error}</p>
@@ -128,8 +138,18 @@ export default function Movimientos({
       return timeStr.toUpperCase();
     }
     const months = [
-      "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
-      "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"
+      "ENERO",
+      "FEBRERO",
+      "MARZO",
+      "ABRIL",
+      "MAYO",
+      "JUNIO",
+      "JULIO",
+      "AGOSTO",
+      "SEPTIEMBRE",
+      "OCTUBRE",
+      "NOVIEMBRE",
+      "DICIEMBRE",
     ];
     return `${months[date.getMonth()]} ${date.getFullYear()}`;
   };
@@ -345,7 +365,7 @@ export default function Movimientos({
                       >
                         {type === "Todos" ? "Todas las operaciones" : type}
                       </button>
-                    ),
+                    )
                   )}
                 </div>
               )}
@@ -420,10 +440,10 @@ export default function Movimientos({
                             isEnviado
                               ? "bg-red-50 text-red-500"
                               : isRecibido
-                                ? "bg-emerald-50 text-emerald-500"
-                                : isSwap
-                                  ? "bg-purple-50 text-purple-600"
-                                  : "bg-blue-50 text-blue-500"
+                              ? "bg-emerald-50 text-emerald-500"
+                              : isSwap
+                              ? "bg-purple-50 text-purple-600"
+                              : "bg-blue-50 text-blue-500"
                           }`}
                         >
                           {isEnviado && <ArrowUpRight size={18} />}
@@ -451,10 +471,10 @@ export default function Movimientos({
                               isEnviado
                                 ? "text-gray-900"
                                 : isRecibido
-                                  ? "text-emerald-600"
-                                  : isSwap
-                                    ? "text-purple-700"
-                                    : "text-emerald-600"
+                                ? "text-emerald-600"
+                                : isSwap
+                                ? "text-purple-700"
+                                : "text-emerald-600"
                             }`}
                           >
                             {isSwap ? tx.displayAmount : tx.amount}
