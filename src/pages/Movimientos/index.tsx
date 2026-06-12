@@ -184,7 +184,8 @@ export default function Movimientos({
 
   return (
     <div className={styles.container(isCompact)}>
-      {/* HEADER SUPERIOR */}
+      <div className={isCompact ? "" : "max-w-[1200px] mx-auto"}>
+        {/* HEADER SUPERIOR */}
       {!isCompact && (
         <div className={styles.headerWrapper}>
           <div>
@@ -414,7 +415,7 @@ export default function Movimientos({
 
           return (
             <div key={mes} className={styles.monthAnimation}>
-              <h2 className={styles.monthTitle}>
+              <h2 className={styles.monthTitle(isCompact)}>
                 {mes}
               </h2>
               <div className={styles.monthTransactionsList}>
@@ -427,12 +428,12 @@ export default function Movimientos({
                   return (
                     <div
                       key={tx.id}
-                      className={styles.transactionItem}
+                      className={styles.transactionItem(isCompact)}
                     >
                       <div className={styles.transactionItemLeft}>
                         {/* Icono Circular de la Transacción */}
                         <div
-                          className={styles.transactionIconWrapper(tx.type)}
+                          className={styles.transactionIconWrapper(tx.type, isCompact)}
                         >
                           {isEnviado && <ArrowUpRight size={18} />}
                           {isRecibido && <ArrowDownLeft size={18} />}
@@ -442,10 +443,10 @@ export default function Movimientos({
 
                         {/* Textos informativos */}
                         <div>
-                          <h3 className={styles.transactionTitle}>
+                          <h3 className={styles.transactionTitle(isCompact)}>
                             {tx.title}
                           </h3>
-                          <p className={styles.transactionTime}>
+                          <p className={styles.transactionTime(isCompact)}>
                             {tx.time} {tx.description && `· ${tx.description}`}
                           </p>
                         </div>
@@ -455,7 +456,7 @@ export default function Movimientos({
                       <div className={styles.transactionItemRight}>
                         <div>
                           <p
-                            className={styles.transactionAmount(tx.type)}
+                            className={styles.transactionAmount(tx.type, isCompact)}
                           >
                             {isSwap ? tx.displayAmount : tx.amount}
                           </p>
@@ -463,7 +464,7 @@ export default function Movimientos({
 
                         {/* Badge */}
                         <span
-                          className={styles.statusBadge(tx.status)}
+                          className={styles.statusBadge(tx.status, isCompact)}
                         >
                           {tx.status}
                         </span>
@@ -486,6 +487,7 @@ export default function Movimientos({
           </p>
         </div>
       )}
+      </div>
     </div>
   );
 }
