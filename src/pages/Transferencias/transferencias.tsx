@@ -13,7 +13,7 @@ function Transferencias() {
   return (
     <div className={styles.container} style={styles.background}>
       {step === "confirm" ? (
-        <div className={styles.cardCenter}>
+        <div className={styles.cardCenter} style={styles.cardBg}>
           <div className={styles.checkCircle}>
             <svg
               className={styles.checkIcon}
@@ -57,7 +57,7 @@ function Transferencias() {
           </button>
         </div>
       ) : (
-        <div className={styles.card}>
+        <div className={styles.card} style={styles.cardBg}>
           <h1 className={styles.formTitulo}>Enviar dinero</h1>
           <p className={styles.formSubtitulo}>
             Transfiere de forma inmediata y sin comisiones.
@@ -82,10 +82,10 @@ function Transferencias() {
                 onChange={(e) => setMoneda(e.target.value as any)}
                 className={styles.select}
               >
-                <option value="USD">🇺🇸 USD</option>
-                <option value="EUR">🇪🇺 EUR</option>
-                <option value="ARS">🇦🇷 ARS</option>
-                <option value="COP">🇨🇴 COP</option>
+                <option value="USD" className="bg-[#1c0d3a]">🇺🇸 USD</option>
+                <option value="EUR" className="bg-[#1c0d3a]">🇪🇺 EUR</option>
+                <option value="ARS" className="bg-[#1c0d3a]">🇦🇷 ARS</option>
+                <option value="COP" className="bg-[#1c0d3a]">🇨🇴 COP</option>
               </select>
               <div className={styles.montoInputWrapper}>
                 <span className={styles.montoSymbol}>$</span>
@@ -101,7 +101,7 @@ function Transferencias() {
           </div>
 
           {error && (
-            <p className="text-red-500 text-sm text-center mt-2">{error}</p>
+            <p className="text-red-400 text-sm text-center mt-2 font-medium">{error}</p>
           )}
 
           <button
