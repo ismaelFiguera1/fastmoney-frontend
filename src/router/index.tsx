@@ -7,6 +7,8 @@ import Movimientos from '../pages/Movimientos'
 import ProtectedRoute from './ProtectedRoute'
 import Transferencias from '../pages/Transferencias/transferencias'
 import Perfil from '../pages/Perfil'
+import Deposito from '../pages/Deposito/Deposito'
+import { TasaCambio } from '../pages/tasasDeCambio/tasasDeCambio'
 
 export const router = createBrowserRouter([
   {
@@ -35,11 +37,11 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.DEPOSIT,
-        element: <div className="p-8"><h1 className="text-2xl font-bold">Depósitos</h1></div>,
+        element: <Deposito />,
       },
       {
         path: ROUTES.EXCHANGE,
-        element: <div className="p-8"><h1 className="text-2xl font-bold">Tasas de Cambio</h1></div>,
+        element: <TasaCambio />,
       },
       {
         path: ROUTES.HISTORY,

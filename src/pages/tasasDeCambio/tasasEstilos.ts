@@ -1,0 +1,156 @@
+import { CSSProperties } from 'react';
+
+// Paleta de colores basada en degradados morados y oscuros
+const colores = {
+  fondoGradiente: 'linear-gradient(135deg, #1a0b2e 0%, #31145a 50%, #4a1c8c 100%)',
+  fondoTarjeta: 'rgba(255, 255, 255, 0.06)',
+  bordeTarjeta: 'rgba(255, 255, 255, 0.1)',
+  textoPrincipal: '#ffffff',
+  textoSecundario: '#b3a4c9',
+  acentoVerde: '#00e676', // Para subidas de tasa
+  acentoRosa: '#ff4081',  // Para bajadas de tasa
+  botonFondo: '#673ab7',
+  botonHover: '#7e57c2',
+};
+
+export const estilos: Record<string, CSSProperties> = {
+  contenedorPrincipal: {
+    minHeight: '100vh',
+    background: colores.fondoGradiente,
+    fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    color: colores.textoPrincipal,
+    padding: '40px 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  titulo: {
+    fontSize: '2.5rem',
+    fontWeight: 700,
+    marginBottom: '10px',
+    textAlign: 'center',
+    background: 'linear-gradient(to right, #ffffff, #d1c4e9)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  },
+  subtitulo: {
+    color: colores.textoSecundario,
+    fontSize: '1rem',
+    marginBottom: '40px',
+    textAlign: 'center',
+  },
+  dashboardGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gap: '20px',
+    width: '100%',
+    maxWidth: '1200px',
+    marginBottom: '40px',
+  },
+  tarjetaDivisa: {
+    background: colores.fondoTarjeta,
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    border: `1px solid ${colores.bordeTarjeta}`,
+    borderRadius: '16px',
+    padding: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'relative',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+  },
+  headerTarjeta: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+  },
+  codigoDivisa: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    letterSpacing: '1px',
+  },
+  nombreDivisa: {
+    color: colores.textoSecundario,
+    fontSize: '0.85rem',
+  },
+  valorDivisa: {
+    fontSize: '2rem',
+    fontWeight: 600,
+    margin: '12px 0 4px 0',
+  },
+  cambioPorcentaje: {
+    fontSize: '0.9rem',
+    fontWeight: 500,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
+  seccionConversor: {
+    background: 'rgba(255, 255, 255, 0.04)',
+    border: `1px solid ${colores.bordeTarjeta}`,
+    borderRadius: '20px',
+    padding: '30px',
+    width: '100%',
+    maxWidth: '500px',
+    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+  },
+  tituloConversor: {
+    fontSize: '1.3rem',
+    marginBottom: '20px',
+    fontWeight: 600,
+    textAlign: 'center',
+  },
+  grupoInput: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    marginBottom: '20px',
+  },
+  label: {
+    color: colores.textoSecundario,
+    fontSize: '0.85rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  input: {
+    background: 'rgba(0, 0, 0, 0.2)',
+    border: `1px solid ${colores.bordeTarjeta}`,
+    borderRadius: '8px',
+    padding: '12px 16px',
+    color: colores.textoPrincipal,
+    fontSize: '1.1rem',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+  },
+  select: {
+    background: '#31145a',
+    border: `1px solid ${colores.bordeTarjeta}`,
+    borderRadius: '8px',
+    padding: '12px 16px',
+    color: colores.textoPrincipal,
+    fontSize: '1.1rem',
+    outline: 'none',
+    cursor: 'pointer',
+  },
+  resultadoContenedor: {
+    marginTop: '24px',
+    padding: '16px',
+    background: 'rgba(103, 58, 183, 0.2)',
+    borderRadius: '10px',
+    border: '1px solid rgba(103, 58, 183, 0.3)',
+    textAlign: 'center',
+  },
+  resultadoTexto: {
+    fontSize: '1.4rem',
+    fontWeight: 600,
+  }
+};
+
+export const infoDivisas = {
+  USD: { nombre: 'Dólar Estadounidense', simbolo: '$' },
+  ARS: { nombre: 'Peso Argentino', simbolo: '$' },
+  COP: { nombre: 'Peso Colombiano', simbolo: '$' },
+  EUR: { nombre: 'Euro', simbolo: '€' },
+};
