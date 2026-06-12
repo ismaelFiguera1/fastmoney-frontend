@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 export const styles = {
   // Loading State
@@ -15,16 +15,18 @@ export const styles = {
   // Layout / Panels
   container: 'min-h-full pb-12',
   
-  // Welcome Banner
+  // Welcome Banner (BLOQUE MODIFICADO CON EL DEGRADADO OSCURO)
   bannerHeader: 'pt-12 pb-24 px-8 relative text-white flex justify-between items-start',
   bannerHeaderBg: {
-    background: 'linear-gradient(135deg, #7c3aed 0%, #9333ea 60%, #a855f7 100%)',
+    background: 'linear-gradient(135deg, #12072B 0%, #1A0B36 55%, #32145A 100%)',
+    borderBottomLeftRadius: '16px',
+    borderBottomRightRadius: '16px',
   } as React.CSSProperties,
-  welcomeSub: 'text-purple-100 text-sm font-medium',
-  welcomeTitle: 'text-3xl font-extrabold tracking-tight mt-1 flex items-center gap-2',
+  welcomeSub: 'text-purple-300 text-sm font-medium',
+  welcomeTitle: 'text-3xl font-extrabold tracking-tight mt-1 flex items-center gap-2 text-white',
   welcomeWave: 'animate-bounce',
   
-  // Notifications / Buttons
+  // Notifications / Buttons (Ajustado el contraste para el fondo oscuro)
   headerActions: 'flex items-center gap-3',
   actionButton: 'w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 transition-all flex items-center justify-center cursor-pointer border border-white/5',
   actionSvg: 'w-5 h-5 text-white',
@@ -78,6 +80,6 @@ export const styles = {
   actionLinkLabel: 'text-xs font-bold text-gray-700',
 
   // Movements List
-  movementsHeaderRow: 'mb-4',
+  movementsHeaderRow: 'flex justify-between items-center mb-4',
   viewAllLink: 'text-xs font-extrabold text-purple-600 hover:text-purple-700 hover:underline',
-}
+};

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { styles } from '../Deposito/DepositoEstilos'
+import { styles } from '../Deposito/depositoEstilos'
 
 type Moneda = 'USD' | 'EUR' | 'ARS' | 'COP'
 
