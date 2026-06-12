@@ -68,98 +68,100 @@ export default function Perfil() {
 
   return (
     <div className={styles.container}>
-      {/* Encabezado */}
-      <div className={styles.headerWrapper}>
-        <h1 className={styles.headerTitle}>Mi Perfil</h1>
-        <p className={styles.headerSubtitle}>Administrá la configuración de tu cuenta y consultá tus números de cuenta.</p>
-      </div>
-
-      <div className={styles.gridContainer}>
-        {/* Tarjeta de Información Personal */}
-        <div className={styles.infoCard}>
-          <div className={styles.avatarCircle}>
-            {userInitial}
-          </div>
-          <h2 className={styles.profileName}>{userName} {userLastName}</h2>
-          <p className={styles.profileEmail}>{userEmail}</p>
-
-          <div className={styles.divider}></div>
-
-          <div className={styles.detailsList}>
-            <div>
-              <span className={styles.detailLabel}>Divisa Preferida</span>
-              <span className={styles.detailValue}>
-                {preferredCurrency === "USD" ? "🇺🇸 USD (Dólar)" :
-                 preferredCurrency === "EUR" ? "🇪🇺 EUR (Euro)" :
-                 preferredCurrency === "COP" ? "🇨🇴 COP (Peso Colombiano)" :
-                 "🇦🇷 ARS (Peso Argentino)"}
-              </span>
-            </div>
-            <div>
-              <span className={styles.detailLabel}>Estado de la cuenta</span>
-              <span className={styles.verifiedBadge}>
-                <span className={styles.verifiedDot}></span>
-                Verificado
-              </span>
-            </div>
-          </div>
+      <div className="max-w-[1000px] mx-auto">
+        {/* Encabezado */}
+        <div className={styles.headerWrapper}>
+          <h1 className={styles.headerTitle}>Mi Perfil</h1>
+          <p className={styles.headerSubtitle}>Administrá la configuración de tu cuenta y consultá tus números de cuenta.</p>
         </div>
 
-        {/* Listado de Cuentas / Billeteras Multimoneda */}
-        <div className={styles.accountsWrapper}>
-          <div className={styles.accountsCard}>
-            <h3 className={styles.accountsTitle}>Cuentas Multimoneda</h3>
-            
-            {balances.length === 0 ? (
-              <div className={styles.emptyState}>
-                No hay cuentas asociadas disponibles.
-              </div>
-            ) : (
-              <div className={styles.accountsListStack}>
-                {balances.map((wallet) => {
-                  const isCopied = copiedId === wallet.id;
-                  const curr = wallet.currency.toUpperCase();
-                  const symbol = curr === "USD" || curr === "ARS" || curr === "COP" ? "$" : curr === "EUR" ? "€" : "$";
+        <div className={styles.gridContainer}>
+          {/* Tarjeta de Información Personal */}
+          <div className={styles.infoCard}>
+            <div className={styles.avatarCircle}>
+              {userInitial}
+            </div>
+            <h2 className={styles.profileName}>{userName} {userLastName}</h2>
+            <p className={styles.profileEmail}>{userEmail}</p>
 
-                  return (
-                    <div
-                      key={wallet.id}
-                      className={styles.accountItemCard}
-                    >
-                      <div className={styles.accountInfo}>
-                        <div className={styles.accountCurrencyRow}>
-                          <span className={styles.accountCurrencyLabel}>
-                            {curr === "USD" ? "🇺🇸 Cuenta Dólar" :
-                             curr === "EUR" ? "🇪🇺 Cuenta Euro" :
-                             curr === "COP" ? "🇨🇴 Cuenta Peso COP" :
-                             "🇦🇷 Cuenta Peso ARS"}
-                          </span>
-                          <span className={styles.currencyBadge}>
-                            {curr}
+            <div className={styles.divider}></div>
+
+            <div className={styles.detailsList}>
+              <div>
+                <span className={styles.detailLabel}>Divisa Preferida</span>
+                <span className={styles.detailValue}>
+                  {preferredCurrency === "USD" ? "🇺🇸 USD (Dólar)" :
+                   preferredCurrency === "EUR" ? "🇪🇺 EUR (Euro)" :
+                   preferredCurrency === "COP" ? "🇨🇴 COP (Peso Colombiano)" :
+                   "🇦🇷 ARS (Peso Argentino)"}
+                </span>
+              </div>
+              <div>
+                <span className={styles.detailLabel}>Estado de la cuenta</span>
+                <span className={styles.verifiedBadge}>
+                  <span className={styles.verifiedDot}></span>
+                  Verificado
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Listado de Cuentas / Billeteras Multimoneda */}
+          <div className={styles.accountsWrapper}>
+            <div className={styles.accountsCard}>
+              <h3 className={styles.accountsTitle}>Cuentas Multimoneda</h3>
+              
+              {balances.length === 0 ? (
+                <div className={styles.emptyState}>
+                  No hay cuentas asociadas disponibles.
+                </div>
+              ) : (
+                <div className={styles.accountsListStack}>
+                  {balances.map((wallet) => {
+                    const isCopied = copiedId === wallet.id;
+                    const curr = wallet.currency.toUpperCase();
+                    const symbol = curr === "USD" || curr === "ARS" || curr === "COP" ? "$" : curr === "EUR" ? "€" : "$";
+
+                    return (
+                      <div
+                        key={wallet.id}
+                        className={styles.accountItemCard}
+                      >
+                        <div className={styles.accountInfo}>
+                          <div className={styles.accountCurrencyRow}>
+                            <span className={styles.accountCurrencyLabel}>
+                              {curr === "USD" ? "🇺🇸 Cuenta Dólar" :
+                               curr === "EUR" ? "🇪🇺 Cuenta Euro" :
+                               curr === "COP" ? "🇨🇴 Cuenta Peso COP" :
+                               "🇦🇷 Cuenta Peso ARS"}
+                            </span>
+                            <span className={styles.currencyBadge}>
+                              {curr}
+                            </span>
+                          </div>
+                          <div className={styles.accountMetadataRow}>
+                            <span>N°: {codigoCuenta}</span>
+                            <button
+                              onClick={() => handleCopy(codigoCuenta)}
+                              className={styles.copyBtn}
+                            >
+                              {isCopied ? "¡Copiado!" : "Copiar"}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className={styles.balanceBlock}>
+                          <span className={styles.balanceLabel}>Saldo Disponible</span>
+                          <span className={styles.balanceValue}>
+                            {symbol} {wallet.balance.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         </div>
-                        <div className={styles.accountMetadataRow}>
-                          <span>N°: {codigoCuenta}</span>
-                          <button
-                            onClick={() => handleCopy(codigoCuenta)}
-                            className={styles.copyBtn}
-                          >
-                            {isCopied ? "¡Copiado!" : "Copiar"}
-                          </button>
-                        </div>
                       </div>
-
-                      <div className={styles.balanceBlock}>
-                        <span className={styles.balanceLabel}>Saldo Disponible</span>
-                        <span className={styles.balanceValue}>
-                          {symbol} {wallet.balance.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
