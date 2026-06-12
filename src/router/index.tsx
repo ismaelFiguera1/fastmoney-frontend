@@ -7,6 +7,7 @@ import Movimientos from '../pages/Movimientos'
 import ProtectedRoute from './ProtectedRoute'
 import Transferencias from '../pages/Transferencias/transferencias'
 import Perfil from '../pages/Perfil'
+import Ahorro from '../pages/Ahorro'
 import Deposito from '../pages/Deposito/Deposito'
 import { TasaCambio } from '../pages/tasasDeCambio/tasasDeCambio'
 
@@ -49,7 +50,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.SAVINGS,
-        element: <div className="p-8"><h1 className="text-2xl font-bold">Ahorros</h1></div>,
+        element: <Ahorro />,
       },
       {
         path: ROUTES.PROFILE,
