@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import { transferenciaService } from "../../services/transactions.service";
+import { styles } from "./movimientosEstilos";
+
 
 // --- Tipados e Interfaces ---
 interface Transaction {
@@ -87,14 +89,14 @@ export default function Movimientos({
   if (loading) {
     if (isCompact) {
       return (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+        <div className={styles.loadingCompactWrapper}>
+          <div className={styles.loadingCompactSpinner}></div>
         </div>
       );
     }
     return (
-      <div className="flex items-center justify-center min-h-[400px] h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+      <div className={styles.loadingScreenWrapper}>
+        <div className={styles.loadingScreenSpinner}></div>
       </div>
     );
   }
@@ -102,16 +104,16 @@ export default function Movimientos({
   if (error) {
     if (isCompact) {
       return (
-        <div className="bg-red-50 border border-red-100 text-red-700 px-4 py-3 rounded-2xl text-xs font-semibold text-center my-4">
+        <div className={styles.errorCompact}>
           {error}
         </div>
       );
     }
     return (
-      <div className="p-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl shadow-sm max-w-lg mx-auto mt-12 flex flex-col items-center gap-3">
+      <div className={styles.errorScreenWrapper}>
+        <div className={styles.errorScreenCard}>
           <svg
-            className="w-12 h-12 text-red-500 animate-pulse"
+            className={styles.errorScreenSvg}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -123,8 +125,8 @@ export default function Movimientos({
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          <span className="font-bold text-lg">Error al cargar movimientos</span>
-          <p className="text-sm text-center text-red-600">{error}</p>
+          <span className={styles.errorScreenTitle}>Error al cargar movimientos</span>
+          <p className={styles.errorScreenMessage}>{error}</p>
         </div>
       </div>
     );
@@ -181,32 +183,26 @@ export default function Movimientos({
     : filteredTransactions;
 
   return (
-    <div
-      className={
-        isCompact
-          ? "bg-white p-0"
-          : "min-h-screen bg-white p-10 max-w-[1400px] mx-auto animate-fadeIn"
-      }
-    >
+    <div className={styles.container(isCompact)}>
       {/* HEADER SUPERIOR */}
       {!isCompact && (
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
+        <div className={styles.headerWrapper}>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            <h1 className={styles.headerTitle}>
               Movimientos
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className={styles.headerSubtitle}>
               Consulta el historial de todas tus transacciones.
             </p>
           </div>
 
-          <div className="flex items-center gap-8 self-end lg:self-auto">
+          <div className={styles.headerActions}>
             {/* Gráfico Sparkline de Actividad de 7 días */}
-            <div className="flex flex-col items-end">
-              <span className="text-[11px] font-extrabold text-gray-400 tracking-wider uppercase mb-1">
+            <div className={styles.activityContainer}>
+              <span className={styles.activityLabel}>
                 Actividad 7 días
               </span>
-              <div className="w-32 h-8">
+              <div className={styles.sparklineWrapper}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData}>
                     <defs>
@@ -243,7 +239,7 @@ export default function Movimientos({
             </div>
 
             {/* Botón Exportar */}
-            <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 text-gray-700 transition-all duration-200 shadow-sm cursor-pointer active:scale-98">
+            <button className={styles.exportButton}>
               <Download size={16} />
               Exportar
             </button>
@@ -252,63 +248,63 @@ export default function Movimientos({
       )}
       {/* METRICAS / ESTADÍSTICAS GRID */}
       {!isCompact && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <div className={styles.metricsGrid}>
           {/* Total Enviado */}
-          <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-xs font-bold text-gray-400 tracking-wider uppercase">
+          <div className={styles.metricCard}>
+            <div className={styles.metricTextBlock}>
+              <span className={styles.metricLabel}>
                 Total Enviado
               </span>
-              <h3 className="text-2xl font-bold tracking-tight text-red-500">
+              <h3 className={styles.metricValueRed}>
                 -$1,250.00
               </h3>
             </div>
-            <div className="p-3 bg-red-50 rounded-xl text-red-500">
+            <div className={styles.metricIconRed}>
               <ArrowUpRight size={20} />
             </div>
           </div>
 
           {/* Total Recibido */}
-          <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-xs font-bold text-gray-400 tracking-wider uppercase">
+          <div className={styles.metricCard}>
+            <div className={styles.metricTextBlock}>
+              <span className={styles.metricLabel}>
                 Total Recibido
               </span>
-              <h3 className="text-2xl font-bold tracking-tight text-emerald-600">
+              <h3 className={styles.metricValueEmerald}>
                 +$3,800.00
               </h3>
             </div>
-            <div className="p-3 bg-emerald-50 rounded-xl text-emerald-500">
+            <div className={styles.metricIconEmerald}>
               <ArrowDownLeft size={20} />
             </div>
           </div>
 
           {/* Total Convertido */}
-          <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-xs font-bold text-gray-400 tracking-wider uppercase">
+          <div className={styles.metricCard}>
+            <div className={styles.metricTextBlock}>
+              <span className={styles.metricLabel}>
                 Total Convertido
               </span>
-              <h3 className="text-2xl font-bold tracking-tight text-purple-700">
+              <h3 className={styles.metricValuePurple}>
                 $950.00
               </h3>
             </div>
-            <div className="p-3 bg-purple-50 rounded-xl text-purple-600">
+            <div className={styles.metricIconPurple}>
               <RefreshCw size={20} />
             </div>
           </div>
 
           {/* Operaciones */}
-          <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-xs font-bold text-gray-400 tracking-wider uppercase">
+          <div className={styles.metricCard}>
+            <div className={styles.metricTextBlock}>
+              <span className={styles.metricLabel}>
                 Operaciones
               </span>
-              <h3 className="text-2xl font-bold tracking-tight text-gray-900">
+              <h3 className={styles.metricValueBlack}>
                 12
               </h3>
             </div>
-            <div className="p-3 bg-gray-50 rounded-xl text-gray-500">
+            <div className={styles.metricIconGray}>
               <FileText size={20} />
             </div>
           </div>
@@ -317,11 +313,11 @@ export default function Movimientos({
 
       {/* FILTROS Y BUSCADOR */}
       {!isCompact && (
-        <div className="flex flex-col md:flex-row gap-3 items-center justify-between w-full bg-gray-50/60 p-2 rounded-2xl border border-gray-100 mb-8">
+        <div className={styles.filtersBar}>
           {/* Barra de Búsqueda Grande */}
-          <div className="relative w-full md:flex-1">
+          <div className={styles.searchWrapper}>
             <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              className={styles.searchIcon}
               size={18}
             />
             <input
@@ -329,30 +325,30 @@ export default function Movimientos({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar por usuario, correo o referencia..."
-              className="w-full bg-white border border-gray-200/80 rounded-xl pl-11 pr-4 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all duration-200"
+              className={styles.searchInput}
             />
           </div>
 
           {/* Selectores Desplegables */}
-          <div className="flex gap-2 w-full md:w-auto relative">
+          <div className={styles.dropdownsWrapper}>
             {/* Tipo de Operación */}
-            <div className="relative flex-1 md:flex-none">
+            <div className={styles.dropdownWrapper}>
               <button
                 onClick={() => {
                   setShowTypeDropdown(!showTypeDropdown);
                   setShowCurrencyDropdown(false);
                 }}
-                className="w-full flex items-center justify-between gap-4 bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                className={styles.dropdownToggleBtn}
               >
                 <span>
                   {typeFilter === "Todos"
                     ? "Todas las operaciones"
                     : typeFilter}
                 </span>
-                <ChevronDown size={16} className="text-gray-400" />
+                <ChevronDown size={16} className={styles.dropdownToggleChevron} />
               </button>
               {showTypeDropdown && (
-                <div className="absolute right-0 mt-1.5 w-48 bg-white border border-gray-100 rounded-xl p-1.5 shadow-xl z-20">
+                <div className={styles.dropdownMenuType}>
                   {["Todos", "ENVIADO", "RECIBIDO", "SWAP", "DEPOSITO"].map(
                     (type) => (
                       <button
@@ -361,7 +357,7 @@ export default function Movimientos({
                           setTypeFilter(type);
                           setShowTypeDropdown(false);
                         }}
-                        className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+                        className={styles.dropdownOptionBtn}
                       >
                         {type === "Todos" ? "Todas las operaciones" : type}
                       </button>
@@ -372,21 +368,21 @@ export default function Movimientos({
             </div>
 
             {/* Moneda */}
-            <div className="relative flex-1 md:flex-none">
+            <div className={styles.dropdownWrapper}>
               <button
                 onClick={() => {
                   setShowCurrencyDropdown(!showCurrencyDropdown);
                   setShowTypeDropdown(false);
                 }}
-                className="w-full flex items-center justify-between gap-4 bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                className={styles.dropdownToggleBtn}
               >
                 <span>
                   {currencyFilter === "Todas" ? "Moneda" : currencyFilter}
                 </span>
-                <ChevronDown size={16} className="text-gray-400" />
+                <ChevronDown size={16} className={styles.dropdownToggleChevron} />
               </button>
               {showCurrencyDropdown && (
-                <div className="absolute right-0 mt-1.5 w-36 bg-white border border-gray-100 rounded-xl p-1.5 shadow-xl z-20">
+                <div className={styles.dropdownMenuCurrency}>
                   {["Todas", "USD", "EUR", "ARS", "COP"].map((curr) => (
                     <button
                       key={curr}
@@ -394,7 +390,7 @@ export default function Movimientos({
                         setCurrencyFilter(curr);
                         setShowCurrencyDropdown(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+                      className={styles.dropdownOptionBtn}
                     >
                       {curr === "Todas" ? "Todas" : curr}
                     </button>
@@ -407,7 +403,7 @@ export default function Movimientos({
       )}
 
       {/* LISTADO AGRUPADO POR MESES */}
-      <div className="space-y-8">
+      <div className={styles.monthlyGroupsList}>
         {Array.from(
           new Set(limitedTxs.map((t) => t.monthGroup || getMonthGroup(t.time)))
         ).map((mes) => {
@@ -417,11 +413,11 @@ export default function Movimientos({
           if (txsDelMes.length === 0) return null;
 
           return (
-            <div key={mes} className="animate-fadeIn">
-              <h2 className="text-xs font-bold text-gray-400 tracking-wider mb-4 uppercase">
+            <div key={mes} className={styles.monthAnimation}>
+              <h2 className={styles.monthTitle}>
                 {mes}
               </h2>
-              <div className="space-y-3">
+              <div className={styles.monthTransactionsList}>
                 {txsDelMes.map((tx) => {
                   const isEnviado = tx.type === "ENVIADO";
                   const isRecibido = tx.type === "RECIBIDO";
@@ -431,20 +427,12 @@ export default function Movimientos({
                   return (
                     <div
                       key={tx.id}
-                      className="bg-white border border-gray-100 hover:border-purple-200 p-4 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.01)] hover:shadow-[0_6px_20px_rgba(109,40,217,0.04)] transition-all duration-300 flex items-center justify-between group"
+                      className={styles.transactionItem}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className={styles.transactionItemLeft}>
                         {/* Icono Circular de la Transacción */}
                         <div
-                          className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-105 ${
-                            isEnviado
-                              ? "bg-red-50 text-red-500"
-                              : isRecibido
-                              ? "bg-emerald-50 text-emerald-500"
-                              : isSwap
-                              ? "bg-purple-50 text-purple-600"
-                              : "bg-blue-50 text-blue-500"
-                          }`}
+                          className={styles.transactionIconWrapper(tx.type)}
                         >
                           {isEnviado && <ArrowUpRight size={18} />}
                           {isRecibido && <ArrowDownLeft size={18} />}
@@ -454,28 +442,20 @@ export default function Movimientos({
 
                         {/* Textos informativos */}
                         <div>
-                          <h3 className="text-sm font-bold text-gray-800 transition-colors group-hover:text-purple-950">
+                          <h3 className={styles.transactionTitle}>
                             {tx.title}
                           </h3>
-                          <p className="text-xs text-gray-400 font-medium mt-0.5">
+                          <p className={styles.transactionTime}>
                             {tx.time} {tx.description && `· ${tx.description}`}
                           </p>
                         </div>
                       </div>
 
                       {/* Montos y Badge de Estado */}
-                      <div className="text-right flex items-center gap-6">
+                      <div className={styles.transactionItemRight}>
                         <div>
                           <p
-                            className={`text-sm font-extrabold tracking-tight ${
-                              isEnviado
-                                ? "text-gray-900"
-                                : isRecibido
-                                ? "text-emerald-600"
-                                : isSwap
-                                ? "text-purple-700"
-                                : "text-emerald-600"
-                            }`}
+                            className={styles.transactionAmount(tx.type)}
                           >
                             {isSwap ? tx.displayAmount : tx.amount}
                           </p>
@@ -483,11 +463,7 @@ export default function Movimientos({
 
                         {/* Badge */}
                         <span
-                          className={`text-[11px] px-2.5 py-1 rounded-full font-bold tracking-wide transition-colors ${
-                            tx.status === "Completado"
-                              ? "bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100/60"
-                              : "bg-amber-50 text-amber-700 group-hover:bg-amber-100/60"
-                          }`}
+                          className={styles.statusBadge(tx.status)}
                         >
                           {tx.status}
                         </span>
@@ -503,9 +479,9 @@ export default function Movimientos({
 
       {/* Estado Vacío (Fallback) */}
       {filteredTransactions.length === 0 && (
-        <div className="text-center py-12 border-2 border-dashed border-gray-100 rounded-3xl">
-          <FileText className="mx-auto text-gray-300 mb-3" size={32} />
-          <p className="text-sm font-semibold text-gray-500">
+        <div className={styles.emptyStateWrapper}>
+          <FileText className={styles.emptyStateIcon} size={32} />
+          <p className={styles.emptyStateText}>
             No se encontraron movimientos con los filtros aplicados.
           </p>
         </div>

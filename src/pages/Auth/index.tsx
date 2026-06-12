@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { authService } from '../../services/auth.service'
 import { useAuthStore } from '../../store/auth.store'
 import { ROUTES } from '../../constants/routes'
+import { styles } from './authEstilos'
+
 
 function Auth() {
   const navigate = useNavigate()
@@ -82,55 +84,50 @@ function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex font-sans">
+    <div className={styles.container}>
 
       {/* Panel izquierdo */}
-      <div className="hidden lg:flex w-[44%] flex-col justify-between p-12"
-        style={{ background: 'linear-gradient(150deg, #5b21b6 0%, #9333ea 40%, #c026d3 100%)' }}>
+      <div className={styles.leftPanel} style={styles.leftPanelBg}>
 
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'rgba(255,255,255,0.2)' }}>
-            <span className="text-white text-lg">⚡</span>
+        <div className={styles.logoWrapper}>
+          <div className={styles.logoIconContainer} style={styles.logoBg}>
+            <span className={styles.logoEmoji}>⚡</span>
           </div>
-          <span className="text-white font-bold text-lg tracking-tight">FastMoney</span>
+          <span className={styles.logoText}>FastMoney</span>
         </div>
 
         <div>
-          <h2 className="text-white font-extrabold text-4xl leading-tight mb-4">
-            Mové tu plata<br />sin <span className="px-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.22)' }}>límites</span>
+          <h2 className={styles.mainTitle}>
+            Mové tu plata<br />sin <span className={styles.titleHighlight} style={styles.limitSpan}>límites</span>
           </h2>
-          <p className="text-purple-200 text-sm leading-relaxed">
+          <p className={styles.subtitle}>
             Enviá, recibí e intercambiá divisas al instante desde cualquier dispositivo.
           </p>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className={styles.featureList}>
           {[
             { icon: '🔄', title: 'Swap instantáneo', sub: 'USD, EUR, COP, ARS' },
             { icon: '📤', title: 'Transferencias rápidas', sub: 'Sin costos ocultos' },
             { icon: '📧', title: 'Confirmación por email', sub: 'Cada operación notificada' },
           ].map((f) => (
-            <div key={f.title} className="flex items-center gap-3 rounded-xl p-3"
-              style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)' }}>
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(255,255,255,0.2)' }}>
+            <div key={f.title} className={styles.featureCard} style={styles.featureCardBg}>
+              <div className={styles.featureIcon} style={styles.logoBg}>
                 <span>{f.icon}</span>
               </div>
               <div>
-                <p className="text-white text-sm font-medium">{f.title}</p>
-                <p className="text-purple-200 text-xs">{f.sub}</p>
+                <p className={styles.featureTitle}>{f.title}</p>
+                <p className={styles.featureSub}>{f.sub}</p>
               </div>
             </div>
           ))}
         </div>
 
         <div>
-          <p className="text-purple-300 text-xs uppercase tracking-widest mb-2">Monedas</p>
-          <div className="flex gap-2 flex-wrap">
+          <p className={styles.currenciesLabel}>Monedas</p>
+          <div className={styles.currenciesList}>
             {['🇺🇸 USD', '🇪🇺 EUR', '🇨🇴 COP', '🇦🇷 ARS'].map((c) => (
-              <span key={c} className="text-white text-xs font-bold px-3 py-1 rounded-full"
-                style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)' }}>
+              <span key={c} className={styles.currencyBadge} style={styles.currencyBadgeBg}>
                 {c}
               </span>
             ))}
@@ -139,99 +136,99 @@ function Auth() {
       </div>
 
       {/* Panel derecho — formulario */}
-      <div className="flex-1 flex flex-col justify-center px-8 lg:px-12 bg-white">
+      <div className={styles.rightPanel}>
 
         {/* Toggle */}
-        <div className="flex bg-purple-50 rounded-xl p-1 mb-8 border border-purple-100">
+        <div className={styles.toggleContainer}>
           <button
             onClick={() => { setIsLogin(true); setError(null) }}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${isLogin ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-400'}`}>
+            className={styles.toggleButton(isLogin)}>
             Iniciar sesión
           </button>
           <button
             onClick={() => { setIsLogin(false); setError(null) }}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${!isLogin ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-400'}`}>
+            className={styles.toggleButton(!isLogin)}>
             Crear cuenta
           </button>
         </div>
 
         {/* Status */}
-        <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-full px-3 py-1 mb-5 w-fit">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span className="text-green-700 text-xs font-medium">Plataforma operativa</span>
+        <div className={styles.statusBadge}>
+          <div className={styles.statusDot}></div>
+          <span className={styles.statusText}>Plataforma operativa</span>
         </div>
 
-        <h1 className="text-2xl font-extrabold text-gray-900 mb-1 tracking-tight">
+        <h1 className={styles.formTitle}>
           {isLogin ? 'Bienvenido de nuevo' : 'Creá tu cuenta'}
         </h1>
-        <p className="text-gray-400 text-sm mb-6">
+        <p className={styles.formSub}>
           {isLogin ? 'Ingresá a tu billetera' : 'Es gratis y tarda menos de un minuto'}
         </p>
 
         {/* Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-4">
+          <div className={styles.errorBox}>
             {error}
           </div>
         )}
 
         {/* Campos register extra */}
         {!isLogin && (
-          <div className="grid grid-cols-2 gap-3 mb-3">
+          <div className={styles.inputRow}>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Nombre</label>
+              <label className={styles.label}>Nombre</label>
               <input name="name" value={form.name} onChange={handleChange}
-                className="w-full bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition"
+                className={styles.input}
                 placeholder="Juan" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Apellido</label>
+              <label className={styles.label}>Apellido</label>
               <input name="lastName" value={form.lastName} onChange={handleChange}
-                className="w-full bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition"
+                className={styles.input}
                 placeholder="Pérez" />
             </div>
           </div>
         )}
 
         {/* Email */}
-        <div className="mb-3">
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Email</label>
+        <div className={styles.inputContainer}>
+          <label className={styles.label}>Email</label>
           <input name="email" type="email" value={form.email} onChange={handleChange}
-            className="w-full bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition"
+            className={styles.input}
             placeholder="tu@email.com" />
         </div>
 
         {/* Password */}
-        <div className="mb-3">
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Contraseña</label>
+        <div className={styles.inputContainer}>
+          <label className={styles.label}>Contraseña</label>
           <input name="password" type="password" value={form.password} onChange={handleChange}
-            className="w-full bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition"
+            className={styles.input}
             placeholder="••••••••" />
         </div>
 
         {/* Confirm password */}
         {!isLogin && (
-          <div className="mb-4">
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Confirmar contraseña</label>
+          <div className={styles.inputContainerMargin}>
+            <label className={styles.label}>Confirmar contraseña</label>
             <input name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange}
-              className="w-full bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition"
+              className={styles.input}
               placeholder="Repetí tu contraseña" />
           </div>
         )}
 
         {/* Selección de Divisa Principal */}
         {!isLogin && (
-          <div className="mb-4">
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Moneda Principal</label>
-            <div className="relative">
+          <div className={styles.inputContainerMargin}>
+            <label className={styles.label}>Moneda Principal</label>
+            <div className={styles.selectWrapper}>
               <select name="moneda" value={form.moneda} onChange={handleChange}
-                className="w-full bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 pr-10 text-sm text-gray-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition appearance-none cursor-pointer">
+                className={styles.select}>
                 <option value="USD">🇺🇸 USD (Dólar Estadounidense)</option>
                 <option value="EUR">🇪🇺 EUR (Euro)</option>
                 <option value="COP">🇨🇴 COP (Peso Colombiano)</option>
                 <option value="ARS">🇦🇷 ARS (Peso Argentino)</option>
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-purple-600">
+              <div className={styles.selectIconWrapper}>
                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                   <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
                 </svg>
@@ -242,8 +239,8 @@ function Auth() {
 
         {/* Forgot */}
         {isLogin && (
-          <div className="text-right mb-5 -mt-1">
-            <a href="#" className="text-purple-600 text-xs font-semibold hover:underline">¿Olvidaste tu contraseña?</a>
+          <div className={styles.forgotContainer}>
+            <a href="#" className={styles.forgotLink}>¿Olvidaste tu contraseña?</a>
           </div>
         )}
 
@@ -251,8 +248,8 @@ function Auth() {
         <button
           onClick={isLogin ? handleLogin : handleRegister}
           disabled={loading}
-          className="w-full text-white font-bold py-3 rounded-xl text-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-60 cursor-pointer"
-          style={{ background: 'linear-gradient(135deg, #9333ea, #c026d3)', boxShadow: '0 4px 18px rgba(147,51,234,0.3)' }}>
+          className={styles.submitBtn}
+          style={styles.submitBtnBg}>
           {loading ? 'Cargando...' : isLogin ? 'Ingresar a FastMoney' : 'Crear cuenta gratis'}
         </button>
 

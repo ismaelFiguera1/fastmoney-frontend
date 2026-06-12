@@ -5,6 +5,8 @@ import { ROUTES } from "../../constants/routes";
 import Movimientos from "../Movimientos";
 import { walletService } from "../../services/wallet.service";
 import { useEffect } from "react";
+import { styles } from "./dashboardEstilos";
+
 
 function Dashboard() {
   const { user } = useAuthStore();
@@ -97,21 +99,21 @@ function Dashboard() {
   // Manejo de estados de carga y error
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px] h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+      <div className={styles.loadingWrapper}>
+        <div className={styles.loadingSpinner}></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl shadow-sm max-w-lg mx-auto mt-12 flex flex-col items-center gap-3">
-          <svg className="w-12 h-12 text-red-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className={styles.errorWrapper}>
+        <div className={styles.errorCard}>
+          <svg className={styles.errorSvg} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <span className="font-bold text-lg">Error al cargar datos</span>
-          <p className="text-sm text-center text-red-600">{error}</p>
+          <span className={styles.errorTitle}>Error al cargar datos</span>
+          <p className={styles.errorMessage}>{error}</p>
         </div>
       </div>
     );
@@ -124,29 +126,23 @@ function Dashboard() {
   );
 
   return (
-    <div className="min-h-full pb-12">
+    <div className={styles.container}>
       {/* Banner de Bienvenida superior violeta */}
-      <div
-        className="pt-12 pb-24 px-8 relative text-white flex justify-between items-start"
-        style={{
-          background:
-            "linear-gradient(135deg, #7c3aed 0%, #9333ea 60%, #a855f7 100%)",
-        }}
-      >
+      <div className={styles.bannerHeader} style={styles.bannerHeaderBg}>
         <div>
-          <p className="text-purple-100 text-sm font-medium">
+          <p className={styles.welcomeSub}>
             Bienvenido de nuevo,
           </p>
-          <h1 className="text-3xl font-extrabold tracking-tight mt-1 flex items-center gap-2">
-            {userName} <span className="animate-bounce">👋</span>
+          <h1 className={styles.welcomeTitle}>
+            {userName} <span className={styles.welcomeWave}>👋</span>
           </h1>
         </div>
 
         {/* Campana de notificaciones y ayuda */}
-        <div className="flex items-center gap-3">
-          <button className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 transition-all flex items-center justify-center cursor-pointer border border-white/5">
+        <div className={styles.headerActions}>
+          <button className={styles.actionButton}>
             <svg
-              className="w-5 h-5 text-white"
+              className={styles.actionSvg}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -159,9 +155,9 @@ function Dashboard() {
               />
             </svg>
           </button>
-          <button className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 transition-all flex items-center justify-center cursor-pointer border border-white/5">
+          <button className={styles.actionButton}>
             <svg
-              className="w-5 h-5 text-white"
+              className={styles.actionSvg}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -178,15 +174,15 @@ function Dashboard() {
       </div>
 
       {/* Grid de Balances superpuesto */}
-      <div className="px-8 -mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+      <div className={styles.balancesGrid}>
         {/* Saldo Disponible */}
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100/50 flex flex-col justify-between min-h-[160px]">
+        <div className={styles.balanceCard}>
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+            <div className={styles.balanceHeaderRow}>
+              <div className={styles.headerActions}>
+                <div className={styles.iconContainerPurple}>
                   <svg
-                    className="w-4 h-4 text-purple-600"
+                    className={styles.iconPurple}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -199,7 +195,7 @@ function Dashboard() {
                     />
                   </svg>
                 </div>
-                <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest">
+                <span className={styles.balanceLabel}>
                   Saldo Disponible
                 </span>
               </div>
@@ -207,11 +203,11 @@ function Dashboard() {
               {/* Botón Ocultar/Mostrar con el Ojo */}
               <button
                 onClick={() => setIsBalanceHidden(!isBalanceHidden)}
-                className="w-8 h-8 rounded-full hover:bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all cursor-pointer"
+                className={styles.toggleVisibilityBtn}
               >
                 {isBalanceHidden ? (
                   <svg
-                    className="w-4 h-4"
+                    className={styles.toggleVisibilitySvg}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -225,7 +221,7 @@ function Dashboard() {
                   </svg>
                 ) : (
                   <svg
-                    className="w-4 h-4"
+                    className={styles.toggleVisibilitySvg}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -248,21 +244,21 @@ function Dashboard() {
             </div>
 
             {/* Valor monetario */}
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-gray-900">
+            <div className={styles.balanceValueWrapper}>
+              <span className={styles.currencySymbol}>
                 {currentSymbol}
               </span>
-              <span className="text-4xl font-extrabold text-gray-900 tracking-tight transition-all duration-300">
+              <span className={styles.balanceValue}>
                 {isBalanceHidden ? "••••••" : getDisplayBalance(userRealSaldo)}
               </span>
             </div>
           </div>
           //
           {/* Selector de divisa */}
-          <div className="mt-4 relative self-start">
+          <div className={styles.currencySelectorWrapper}>
             <button
               onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              className={styles.currencySelectorBtn}
             >
               <span>
                 {currency === "USD"
@@ -275,7 +271,7 @@ function Dashboard() {
                 {currency}
               </span>
               <svg
-                className={`w-3 h-3 transition-transform duration-200 ${showCurrencyDropdown ? "rotate-180" : ""}`}
+                className={styles.currencySelectorChevron(showCurrencyDropdown)}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -292,10 +288,10 @@ function Dashboard() {
             {showCurrencyDropdown && (
               <>
                 <div
-                  className="fixed inset-0 z-20"
+                  className={styles.dropdownOverlay}
                   onClick={() => setShowCurrencyDropdown(false)}
                 ></div>
-                <div className="absolute left-0 mt-1 bg-white border border-gray-100 rounded-xl p-1.5 shadow-lg w-28 z-30">
+                <div className={styles.dropdownMenu}>
                   {(["USD", "EUR", "ARS", "COP"] as const).map((c) => (
                     <button
                       key={c}
@@ -303,11 +299,7 @@ function Dashboard() {
                         setCurrency(c);
                         setShowCurrencyDropdown(false);
                       }}
-                      className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        currency === c
-                          ? "bg-purple-50 text-purple-700"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
+                      className={styles.dropdownOptionBtn(currency === c)}
                     >
                       {c === "USD"
                         ? "🇺🇸"
@@ -326,12 +318,12 @@ function Dashboard() {
         </div>
 
         {/* Saldo Ahorrado */}
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100/50 flex flex-col justify-between min-h-[160px]">
+        <div className={styles.balanceCard}>
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <div className={styles.balanceHeaderRowGap}>
+              <div className={styles.iconContainerEmerald}>
                 <svg
-                  className="w-4 h-4 text-emerald-600"
+                  className={styles.iconEmerald}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -344,16 +336,16 @@ function Dashboard() {
                   />
                 </svg>
               </div>
-              <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest">
+              <span className={styles.balanceLabel}>
                 Saldo Ahorrado
               </span>
             </div>
 
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-gray-900">
+            <div className={styles.balanceValueWrapper}>
+              <span className={styles.currencySymbol}>
                 {currentSymbol}
               </span>
-              <span className="text-4xl font-extrabold text-gray-900 tracking-tight transition-all duration-300">
+              <span className={styles.balanceValue}>
                 {isBalanceHidden
                   ? "••••••"
                   : getDisplayBalance(userRealSavings)}
@@ -361,15 +353,15 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="mt-4">
-            <p className="text-xs font-semibold text-gray-400">
+          <div className={styles.currencySelectorWrapper}>
+            <p className={styles.goalText}>
               Meta: {currentSymbol}
               {getDisplayBalance(savingsGoal)}
             </p>
             {/* Barra de progreso de la meta */}
-            <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+            <div className={styles.progressBarTrack}>
               <div
-                className="bg-purple-600 h-1.5 rounded-full transition-all duration-500"
+                className={styles.progressBarThumb}
                 style={{ width: `${savingsPercentage}%` }}
               ></div>
             </div>
@@ -378,11 +370,11 @@ function Dashboard() {
       </div>
 
       {/* Sección Acciones Rápidas */}
-      <div className="px-8 mt-10">
-        <h2 className="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest mb-4">
+      <div className={styles.sectionWrapper}>
+        <h2 className={styles.sectionTitle}>
           Acciones Rápidas
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className={styles.actionsGrid}>
           {[
             {
               name: "Enviar",
@@ -472,14 +464,14 @@ function Dashboard() {
             <Link
               key={act.name}
               to={act.path}
-              className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-3 transition-all hover:-translate-y-1 hover:shadow-md active:scale-95 text-center group cursor-pointer"
+              className={styles.actionLinkCard}
             >
               <div
-                className={`w-12 h-12 rounded-full ${act.bg} ${act.iconColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}
+                className={styles.actionLinkIconWrapper(act.bg, act.iconColor)}
               >
                 {act.icon}
               </div>
-              <span className="text-xs font-bold text-gray-700">
+              <span className={styles.actionLinkLabel}>
                 {act.name}
               </span>
             </Link>
@@ -488,14 +480,14 @@ function Dashboard() {
       </div>
 
       {/* Sección Últimos Movimientos */}
-      <div className="px-8 mt-10">
-        <div className="mb-4">
-          <h2 className="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest mb-4">
+      <div className={styles.sectionWrapper}>
+        <div className={styles.movementsHeaderRow}>
+          <h2 className={styles.sectionTitle}>
             Últimos Movimientos
           </h2>
           <Link
             to={ROUTES.HISTORY}
-            className="text-xs font-extrabold text-purple-600 hover:text-purple-700 hover:underline"
+            className={styles.viewAllLink}
           >
             Ver todos
           </Link>
