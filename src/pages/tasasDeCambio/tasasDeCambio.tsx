@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { estilos, infoDivisas } from '../tasasDeCambio/tasasEstilos';
+import { walletService } from '../../services/wallet.service';
 
 // Tipado estricto para las 4 divisas requeridas
 type CodigoDivisa = 'USD' | 'ARS' | 'COP' | 'EUR';
@@ -10,14 +11,35 @@ interface TasaInfo {
   cambio24h: number; // Porcentaje simulado de variación
 }
 
+// cambio24h es simulado — la API no lo provee
+const CAMBIO_24H_SIMULADO: Record<CodigoDivisa, number> = {
+  USD: 0.15,
+  EUR: -0.22,
+  COP: 1.45,
+  ARS: -3.10,
+};
+
 export const TasaCambio: React.FC = () => {
-  // Estado para almacenar las tasas (valores base ejemplo ajustables por API)
   const [tasas, setTasas] = useState<TasaInfo[]>([
     { codigo: 'USD', valorRespectoUSD: 1, cambio24h: 0.15 },
     { codigo: 'EUR', valorRespectoUSD: 0.92, cambio24h: -0.22 },
     { codigo: 'COP', valorRespectoUSD: 4000, cambio24h: 1.45 },
     { codigo: 'ARS', valorRespectoUSD: 900, cambio24h: -3.10 },
   ]);
+
+  // Carga las tasas reales del backend al montar el componente
+  useEffect(() => {
+    walletService.getTasas().then((datos) => {
+      setTasas([
+        { codigo: 'USD', valorRespectoUSD: datos.tasas.USD, cambio24h: CAMBIO_24H_SIMULADO.USD },
+        { codigo: 'EUR', valorRespectoUSD: datos.tasas.EUR, cambio24h: CAMBIO_24H_SIMULADO.EUR },
+        { codigo: 'COP', valorRespectoUSD: datos.tasas.COP, cambio24h: CAMBIO_24H_SIMULADO.COP },
+        { codigo: 'ARS', valorRespectoUSD: datos.tasas.ARS, cambio24h: CAMBIO_24H_SIMULADO.ARS },
+      ]);
+    }).catch(() => {
+      // Si falla la API, los valores hardcodeados del estado inicial se mantienen
+    });
+  }, []);
 
   // Estados para la calculadora/conversor
   const [cantidad, setCantidad] = useState<number>(100);
