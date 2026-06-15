@@ -15,7 +15,7 @@ export default function Perfil() {
     const fetchProfileData = async () => {
       try {
         setLoading(true);
-        const walletBalances = await walletService.getBalance();
+        const walletBalances = await walletService.getDesglose();
         setBalances(walletBalances);
         setError(null);
       } catch (err) {
