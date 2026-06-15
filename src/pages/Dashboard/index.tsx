@@ -31,13 +31,10 @@ function Dashboard() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const balanceRes = await walletService.getBalance();
+        const balanceRes = await walletService.getBalance(currency);
 
-        // Procesar el balance según la moneda del usuario (case-insensitive)
-        const userBalance =
-          balanceRes.find(
-            (b) => b.currency.toUpperCase() === (user?.moneda || "USD").toUpperCase()
-          )?.balance || 0;
+        // El backend devuelve el saldo total ya convertido en el primer elemento
+        const userBalance = balanceRes[0]?.balance || 0;
 
         setBalance(userBalance);
         setError(null);
@@ -52,16 +49,37 @@ function Dashboard() {
     if (user) {
       fetchDashboardData();
     }
-  }, [user]);
+  }, [user, currency]);
 
   // Leemos datos reales de la sesión
   const userName = user?.name || user?.nombre || "Usuario";
   const userRealSaldo = balance !== undefined ? balance : 0;
+
+  // Tasas de conversión locales únicamente para metas y ahorros locales
+  const conversionRates = {
+    USD: { USD: 1, EUR: 0.92, ARS: 900, COP: 3800 },
+    EUR: { USD: 1.08, EUR: 1, ARS: 980, COP: 4100 },
+    ARS: { USD: 0.0011, EUR: 0.001, ARS: 1, COP: 4.2 },
+    COP: { USD: 0.00026, EUR: 0.00024, ARS: 0.24, COP: 1 },
+  };
+
+  const convertFromTo = (amount: number, from: string, to: string) => {
+    if (from === to) return amount;
+    const rate = (conversionRates[from as keyof typeof conversionRates] as any)?.[to] || 1;
+    return amount * rate;
+  };
+
+  // Si user?.saldoAhorrado está definido, está en la moneda de usuario (userCurrency). Lo convertimos.
+  // Si no, usamos userRealSaldo * 0.2 (que ya está convertido en la divisa actual).
   const userRealSavings =
     user?.saldoAhorrado !== undefined
-      ? user?.saldoAhorrado
+      ? convertFromTo(user.saldoAhorrado, userCurrency, currency)
       : userRealSaldo * 0.2;
-  const savingsGoal = user?.metaAhorro !== undefined ? user?.metaAhorro : 10000;
+
+  // La meta de ahorro está en la moneda del usuario (userCurrency). La convertimos.
+  const savingsGoal = user?.metaAhorro !== undefined 
+    ? convertFromTo(user.metaAhorro, userCurrency, currency) 
+    : convertFromTo(10000, userCurrency, currency);
 
   // Mapeo de símbolos de moneda
   const currencySymbols = {
@@ -73,24 +91,9 @@ function Dashboard() {
 
   const currentSymbol = currencySymbols[currency] || "$";
 
-  // Conversión simulada en caso de que el usuario elija otra divisa distinta
-  const getDisplayBalance = (baseAmount: number) => {
-    if (currency === userCurrency) {
-      return baseAmount.toLocaleString("es-AR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    }
-
-    // Tasas de conversión base
-    const conversionRates = {
-      USD: { EUR: 0.92, ARS: 900, COP: 3800 },
-      EUR: { USD: 1.08, ARS: 980, COP: 4100 },
-      ARS: { USD: 0.0011, EUR: 0.001, COP: 4.2 },
-      COP: { USD: 0.00026, EUR: 0.00024, ARS: 0.24 },
-    };
-    const rate = (conversionRates[userCurrency] as any)?.[currency] || 1;
-    return (baseAmount * rate).toLocaleString("es-AR", {
+  // Formatea el balance devuelto. Los valores ya vienen convertidos desde el backend o procesados localmente.
+  const getDisplayBalance = (amount: number) => {
+    return amount.toLocaleString("es-AR", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
@@ -136,7 +139,7 @@ function Dashboard() {
             Bienvenido de nuevo,
           </p>
           <h1 className={styles.welcomeTitle}>
-            {userName} <span className={styles.welcomeWave}>👋</span>
+            {userName}
           </h1>
         </div>
 
