@@ -1,125 +1,139 @@
-import React, { useState } from 'react';
-import { estilosNotificacion } from '../Notificaciones/notificacionesEstilos';
+import React, { useState, useEffect } from "react";
 
-export type TipoTransaccion = 'deposito' | 'transferencia';
-export type TipoMoneda = 'usd' | 'euro' | 'cop' | 'ars';
-
-export interface NotificacionData {
-  id: string;
-  tipo: TipoTransaccion;
+// 1. Definimos la estructura exacta de lo que guardamos al transferir o depositar
+interface Notificacion {
+  id: number;
+  tipo: "DEPOSITO" | "TRANSFERENCIA";
+  titulo: string;
+  mensaje: string;
+  nombre: string;
   monto: number;
-  moneda: TipoMoneda;
-  nombreDestinatario?: string;
-  fecha: Date;
-  leida: boolean;
+  moneda: string;
+  createdAt: string;
 }
 
-export const NotificacionesComponent: React.FC = () => {
-  const [mostrarDropdown, setMostrarDropdown] = useState<boolean>(false);
-  
-  const [notificaciones, setNotificaciones] = useState<NotificacionData[]>([
-    {
-      id: '1',
-      tipo: 'deposito',
-      monto: 4326.80,
-      moneda: 'usd',
-      fecha: new Date(Date.now() - 1000 * 60 * 5),
-      leida: false,
-    },
-    {
-      id: '2',
-      tipo: 'transferencia',
-      monto: 865.36,
-      moneda: 'usd',
-      nombreDestinatario: 'Carlos Mendoza',
-      fecha: new Date(Date.now() - 1000 * 60 * 60 * 2),
-      leida: false,
-    }
-  ]);
+export function NotificacionesComponent() {
+  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
+  const [mostrarDropdown, setMostrarDropdown] = useState(false);
 
-  const toggleDropdown = () => setMostrarDropdown(!mostrarDropdown);
+  // 2. Al cargar el Dashboard, leemos las notificaciones reales del localStorage
+  useEffect(() => {
+    const cargadas = JSON.parse(localStorage.getItem("fastmoney_notificaciones") || "[]");
+    setNotificaciones(cargadas);
+  }, [mostrarDropdown]); // Se actualiza cada vez que el usuario abre la campana
 
-  const marcarTodasComoLeidas = () => {
-    setNotificaciones(prev => prev.map(n => ({ ...n, leida: true })));
+  // Función para el botón "Marcar leídas" que se ve en tu captura
+  const marcarComoLeidas = () => {
+    localStorage.setItem("fastmoney_notificaciones", JSON.stringify([]));
+    setNotificaciones([]);
   };
-
-  const obtenerMontoFormateado = (monto: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(monto);
-  };
-
-  const calcularTiempoRelativo = (fecha: Date): string => {
-    const difMs = Date.now() - fecha.getTime();
-    const difMinutos = Math.floor(difMs / (1000 * 60));
-    const difHoras = Math.floor(difMinutos / 60);
-
-    if (difMinutos < 1) return 'Ahora mismo';
-    if (difMinutos < 60) return `Hace ${difMinutos} min`;
-    if (difHoras < 24) return `Hace ${difHoras} h`;
-    return fecha.toLocaleDateString();
-  };
-
-  const numeroSinLeer = notificaciones.filter(n => !n.leida).length;
 
   return (
-    <div style={estilosNotificacion.contenedorCampana}>
-      <button onClick={toggleDropdown} style={estilosNotificacion.botonCampana}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    <div style={{ position: "relative", display: "inline-block" }}>
+      
+      {/* BOTÓN DE LA CAMPANITA (El que tiene el número '2' rojo en tu imagen) */}
+      <button
+        onClick={() => setMostrarDropdown(!mostrarDropdown)}
+        style={{
+          background: "rgba(255, 255, 255, 0.05)",
+          border: "none",
+          padding: "12px",
+          borderRadius: "50%",
+          cursor: "pointer",
+          color: "#FFF",
+          position: "relative",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center"
+        }}
+      >
+        {/* Icono de Campana SVG */}
+        <svg style={{ width: "22px", height: "22px" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
-        
-        {numeroSinLeer > 0 && (
-          <span style={estilosNotificacion.badgeContador}>{numeroSinLeer}</span>
+
+        {/* Burbuja Roja Dinámica: Solo sale si hay notificaciones reales pendientes */}
+        {notificaciones.length > 0 && (
+          <span
+            style={{
+              position: "absolute",
+              top: "-2px",
+              right: "-2px",
+              backgroundColor: "#EF4444",
+              color: "#FFF",
+              fontSize: "10px",
+              fontWeight: "bold",
+              padding: "2px 6px",
+              borderRadius: "50%"
+            }}
+          >
+            {notificaciones.length}
+          </span>
         )}
       </button>
 
+      {/* EL RECUADRO BLANCO DE TU CAPTURA (Dropdown) */}
       {mostrarDropdown && (
-        <div style={estilosNotificacion.dropdown}>
-          <div style={estilosNotificacion.cabeceraDropdown}>
-            <h4 style={estilosNotificacion.tituloDropdown}>Notificaciones</h4>
-            {numeroSinLeer > 0 && (
-              <button onClick={marcarTodasComoLeidas} style={estilosNotificacion.botonLimpiar}>
-                Marcar leídas
-              </button>
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: "50px",
+            width: "320px",
+            backgroundColor: "#FFFFFF",
+            color: "#1E293B",
+            borderRadius: "16px",
+            padding: "20px",
+            boxShadow: "0 20px 25px -5px rgba(0,0,0,0.3), 0 10px 10px -5px rgba(0,0,0,0.04)",
+            zIndex: 100,
+            fontFamily: "sans-serif"
+          }}
+        >
+          {/* Header del recuadro */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+            <h4 style={{ margin: 0, fontWeight: "700", fontSize: "15px", color: "#0F172A" }}>Notificaciones</h4>
+            <button
+              onClick={marcarComoLeidas}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#4F46E5",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontWeight: "600"
+              }}
+            >
+              Marcar leídas
+            </button>
+          </div>
+
+          {/* LISTA DINÁMICA (Aquí borramos el texto fijo y mapeamos el arreglo real) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "240px", overflowY: "auto" }}>
+            {notificaciones.length === 0 ? (
+              <p style={{ fontSize: "13px", color: "#64748B", margin: "10px 0", textAlign: "center" }}>
+                No tienes notificaciones nuevas
+              </p>
+            ) : (
+              notificaciones.map((notif) => (
+                <div
+                  key={notif.id}
+                  style={{
+                    borderBottom: "1px solid #F1F5F9",
+                    paddingBottom: "10px",
+                    textAlign: "left"
+                  }}
+                >
+                  {/* Aquí se imprime el texto dinámico del envío o depósito */}
+                  <p style={{ margin: "0 0 4px 0", fontSize: "13px", color: "#334155", lineHeight: "1.4" }}>
+                    {notif.mensaje}
+                  </p>
+                  <span style={{ fontSize: "11px", color: "#94A3B8" }}>{notif.createdAt}</span>
+                </div>
+              ))
             )}
           </div>
-          
-          {notificaciones.length === 0 ? (
-            <p style={estilosNotificacion.textoVacio}>No tienes movimientos recientes</p>
-          ) : (
-            <ul style={estilosNotificacion.listaNotificaciones}>
-              {notificaciones.map((notif) => (
-                <li key={notif.id} style={estilosNotificacion.itemNotificacion}>
-                  <div style={estilosNotificacion.contenidoTexto}>
-                    
-                    {/* Renderizado condicional libre de emojis y con nombre morado */}
-                    {notif.tipo === 'deposito' ? (
-                      <span>
-                        Has depositado {obtenerMontoFormateado(notif.monto)} a la moneda {notif.moneda.toLowerCase()}
-                      </span>
-                    ) : (
-                      <span>
-                        Has transferido a{' '}
-                        <span style={estilosNotificacion.nombreResaltado}>
-                          {notif.nombreDestinatario || 'Usuario'}
-                        </span>{' '}
-                        con un monto de {obtenerMontoFormateado(notif.monto)} en moneda {notif.moneda.toUpperCase()}
-                      </span>
-                    )}
-
-                    <span style={estilosNotificacion.tiempoTexto}>
-                      {calcularTiempoRelativo(notif.fecha)}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
       )}
     </div>
   );
-};
+}
