@@ -2,6 +2,17 @@ import React, { useState } from "react";
 import { styles } from "./transferenciasEstilos";
 import { transferenciaService } from "../../services/transactions.service";
 
+interface Notificacion {
+  id: number;
+  tipo: "DEPOSITO" | "TRANSFERENCIA";
+  titulo: string;
+  mensaje: string;
+  nombre: string;
+  monto: number;
+  moneda: string;
+  createdAt: string;
+}
+
 function Transferencias() {
   const [step, setStep] = useState<"form" | "confirm">("form");
   const [correo, setCorreo] = useState("");
@@ -110,11 +121,32 @@ function Transferencias() {
               setLoading(true);
               setError(null);
               try {
+                const montoNumerico = parseFloat(monto);
+                
+                // 1. Ejecutar la transferencia real en tu backend
                 await transferenciaService.transferir(
                   correo,
                   moneda,
-                  parseFloat(monto)
+                  montoNumerico
                 );
+
+                // 2. Crear el objeto de notificación formateado idéntico al diseño inicial
+                const nuevaNotif: Notificacion = {
+                  id: Date.now(),
+                  tipo: "TRANSFERENCIA",
+                  titulo: "Transferencia enviada",
+                  mensaje: `Has transferido a ${correo} con un monto de ${montoNumerico.toLocaleString("es-AR", { minimumFractionDigits: 2 })} en moneda ${moneda.toUpperCase()}`,
+                  nombre: correo,
+                  monto: montoNumerico,
+                  moneda: moneda,
+                  createdAt: "Hace 1 min"
+                };
+
+                // 3. Insertarla arriba de la lista en localStorage
+                const guardadas = JSON.parse(localStorage.getItem("fastmoney_notificaciones") || "[]");
+                localStorage.setItem("fastmoney_notificaciones", JSON.stringify([nuevaNotif, ...guardadas]));
+
+                // 4. Cambiar al paso de confirmación exitosa
                 setStep("confirm");
               } catch (err: any) {
                 const msg =
