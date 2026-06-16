@@ -30,11 +30,12 @@ export const TasaCambio: React.FC = () => {
   // Carga las tasas reales del backend al montar el componente
   useEffect(() => {
     walletService.getTasas().then((datos) => {
+      const usdRates = datos.tasas.USD || {};
       setTasas([
-        { codigo: 'USD', valorRespectoUSD: datos.tasas.USD, cambio24h: CAMBIO_24H_SIMULADO.USD },
-        { codigo: 'EUR', valorRespectoUSD: datos.tasas.EUR, cambio24h: CAMBIO_24H_SIMULADO.EUR },
-        { codigo: 'COP', valorRespectoUSD: datos.tasas.COP, cambio24h: CAMBIO_24H_SIMULADO.COP },
-        { codigo: 'ARS', valorRespectoUSD: datos.tasas.ARS, cambio24h: CAMBIO_24H_SIMULADO.ARS },
+        { codigo: 'USD', valorRespectoUSD: usdRates.USD || 1, cambio24h: CAMBIO_24H_SIMULADO.USD },
+        { codigo: 'EUR', valorRespectoUSD: usdRates.EUR || 0.92, cambio24h: CAMBIO_24H_SIMULADO.EUR },
+        { codigo: 'COP', valorRespectoUSD: usdRates.COP || 4000, cambio24h: CAMBIO_24H_SIMULADO.COP },
+        { codigo: 'ARS', valorRespectoUSD: usdRates.ARS || 900, cambio24h: CAMBIO_24H_SIMULADO.ARS },
       ]);
     }).catch(() => {
       // Si falla la API, los valores hardcodeados del estado inicial se mantienen
