@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { styles } from '../Deposito/depositoEstilos'
+import { depositoService } from '../../services/deposito.service'
 
 type Moneda = 'USD' | 'EUR' | 'ARS' | 'COP'
 
@@ -14,17 +15,30 @@ function Deposito() {
   const [step, setStep] = useState<'form' | 'confirm'>('form')
   const [moneda, setMoneda] = useState<Moneda>('USD')
   const [monto, setMonto] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const simbolo = simbolos[moneda]
 
-  const handleConfirmar = () => {
-    if (monto && parseFloat(monto) > 0) setStep('confirm')
+  const handleConfirmar = async () => {
+    if (!monto || parseFloat(monto) <= 0) return
+    setLoading(true)
+    setError(null)
+    try {
+      await depositoService.depositar(moneda, parseFloat(monto))
+      setStep('confirm')
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al realizar el depósito')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleNuevo = () => {
     setStep('form')
     setMonto('')
     setMoneda('USD')
+    setError(null)
   }
 
   return (
@@ -87,12 +101,16 @@ function Deposito() {
             </div>
           </div>
 
+          {error && (
+            <p className="text-sm font-bold text-rose-400 mb-4 text-center">{error}</p>
+          )}
+
           <button
             onClick={handleConfirmar}
-            disabled={!monto || parseFloat(monto) <= 0}
+            disabled={!monto || parseFloat(monto) <= 0 || loading}
             className={styles.btnDepositar}
           >
-            Depositar
+            {loading ? 'Procesando...' : 'Depositar'}
           </button>
         </div>
       )}

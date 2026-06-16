@@ -48,7 +48,8 @@ function Ahorro() {
   const fetchBalance = async () => {
     try {
       setWalletLoading(true)
-      const balances = await walletService.getBalance()
+      const moneda = (user?.moneda || 'USD').toUpperCase()
+      const balances = await walletService.getBalance(moneda)
       // Filtramos por la moneda base actual
       const activeBalance = balances[0]?.balance || 0
       setDisponible(activeBalance)
