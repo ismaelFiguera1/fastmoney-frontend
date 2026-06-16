@@ -7,6 +7,7 @@ import { walletService } from "../../services/wallet.service";
 import { styles } from "./dashboardEstilos";
 // Tu importación personalizada de notificaciones
 import { NotificacionesComponent } from "../Notificaciones/notificaciones";
+import { ChatBot } from "../../components/ChatBot/ChatBot"; 
 
 function Dashboard() {
   const { user } = useAuthStore();
@@ -131,7 +132,7 @@ function Dashboard() {
 
   return (
     <div className={styles.container}>
-      
+      <ChatBot />
       {/* Banner de Bienvenida superior con el nuevo Gradiente Oscuro */}
       <div className={styles.bannerHeader} style={styles.bannerHeaderBg}>
         <div>
