@@ -7,13 +7,7 @@ export interface WalletBalance {
 }
 
 export interface TasasDeCambio {
-  base: string;
-  tasas: {
-    USD: number;
-    EUR: number;
-    ARS: number;
-    COP: number;
-  };
+  tasas: Record<string, Record<string, number>>;
 }
 
 export const walletService = {
