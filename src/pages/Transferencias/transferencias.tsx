@@ -15,11 +15,12 @@ interface Notificacion {
 
 function Transferencias() {
   const [step, setStep] = useState<"form" | "confirm">("form");
-  const [correo, setCorreo] = useState("");
+  const [codigoCuenta, setCodigoCuenta] = useState("");
   const [monto, setMonto] = useState("");
   const [moneda, setMoneda] = useState<"USD" | "EUR" | "ARS" | "COP">("USD");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [nombreDestinatario, setNombreDestinatario] = useState("");
 
   return (
     <div className={styles.container} style={styles.background}>
@@ -46,7 +47,8 @@ function Transferencias() {
 
           <div className={styles.destinatarioBox}>
             <p className={styles.destinatarioLabel}>Destinatario</p>
-            <p className={styles.destinatarioNombre}>{correo}</p>
+            {/* ✅ Ahora muestra el nombre real */}
+            <p className={styles.destinatarioNombre}>{nombreDestinatario}</p>
           </div>
 
           <div className={styles.montoBox}>
@@ -59,8 +61,9 @@ function Transferencias() {
           <button
             onClick={() => {
               setStep("form");
-              setCorreo("");
+              setCodigoCuenta("");
               setMonto("");
+              setNombreDestinatario("");
             }}
             className={styles.btnNueva}
           >
@@ -78,8 +81,8 @@ function Transferencias() {
             <label className={styles.label}>Codigo del Destinatario</label>
             <input
               type="text"
-              value={correo}
-              onChange={(e) => setCorreo(e.target.value)}
+              value={codigoCuenta}
+              onChange={(e) => setCodigoCuenta(e.target.value)}
               placeholder="Codigo del destinatario"
               className={styles.input}
             />
@@ -93,11 +96,12 @@ function Transferencias() {
                 onChange={(e) => setMoneda(e.target.value as any)}
                 className={styles.select}
               >
-                <option value="USD" className="bg-[#1c0d3a]">🇺🇸 USD</option>
-                <option value="EUR" className="bg-[#1c0d3a]">🇪🇺 EUR</option>
-                <option value="ARS" className="bg-[#1c0d3a]">🇦🇷 ARS</option>
-                <option value="COP" className="bg-[#1c0d3a]">🇨🇴 COP</option>
+                <option value="USD">🇺🇸 USD</option>
+                <option value="EUR">🇪🇺 EUR</option>
+                <option value="ARS">🇦🇷 ARS</option>
+                <option value="COP">🇨🇴 COP</option>
               </select>
+
               <div className={styles.montoInputWrapper}>
                 <span className={styles.montoSymbol}>$</span>
                 <input
@@ -112,41 +116,51 @@ function Transferencias() {
           </div>
 
           {error && (
-            <p className="text-red-400 text-sm text-center mt-2 font-medium">{error}</p>
+            <p className="text-red-400 text-sm text-center mt-2 font-medium">
+              {error}
+            </p>
           )}
 
           <button
             onClick={async () => {
-              if (!correo || !monto) return;
+              if (!codigoCuenta || !monto) return;
               setLoading(true);
               setError(null);
+
               try {
                 const montoNumerico = parseFloat(monto);
-                
-                // 1. Ejecutar la transferencia real en tu backend
-                await transferenciaService.transferir(
-                  correo,
+
+                // ✅ Capturamos la respuesta del backend
+                const resultado = await transferenciaService.transferir(
+                  codigoCuenta,
                   moneda,
                   montoNumerico
                 );
 
-                // 2. Crear el objeto de notificación formateado idéntico al diseño inicial
+                // ✅ Usamos el nombre que devuelve el backend
+                const nombre = resultado.detalle.nombreDestinatario;
+                setNombreDestinatario(nombre);
+
                 const nuevaNotif: Notificacion = {
                   id: Date.now(),
                   tipo: "TRANSFERENCIA",
                   titulo: "Transferencia enviada",
-                  mensaje: `Has transferido a ${correo} con un monto de ${montoNumerico.toLocaleString("es-AR", { minimumFractionDigits: 2 })} en moneda ${moneda.toUpperCase()}`,
-                  nombre: correo,
+                  // ✅ Notificación también con nombre real
+                  mensaje: `Has transferido a ${nombre} un monto de ${montoNumerico.toLocaleString("es-AR", { minimumFractionDigits: 2 })} ${moneda.toUpperCase()}`,
+                  nombre: nombre,
                   monto: montoNumerico,
-                  moneda: moneda,
-                  createdAt: "Hace 1 min"
+                  moneda,
+                  createdAt: "Hace 1 min",
                 };
 
-                // 3. Insertarla arriba de la lista en localStorage
-                const guardadas = JSON.parse(localStorage.getItem("fastmoney_notificaciones") || "[]");
-                localStorage.setItem("fastmoney_notificaciones", JSON.stringify([nuevaNotif, ...guardadas]));
+                const guardadas = JSON.parse(
+                  localStorage.getItem("fastmoney_notificaciones") || "[]"
+                );
+                localStorage.setItem(
+                  "fastmoney_notificaciones",
+                  JSON.stringify([nuevaNotif, ...guardadas])
+                );
 
-                // 4. Cambiar al paso de confirmación exitosa
                 setStep("confirm");
               } catch (err: any) {
                 const msg =
@@ -157,7 +171,7 @@ function Transferencias() {
                 setLoading(false);
               }
             }}
-            disabled={!correo || !monto || loading}
+            disabled={!codigoCuenta || !monto || loading}
             className={styles.btnEnviar}
           >
             {loading ? "Enviando..." : "Confirmar envío"}

@@ -20,6 +20,7 @@ export interface TransferenciaResult {
     moneda: string;
     transferenciaId: string;
     fecha: string;
+    nombreDestinatario: string; // ✅ agregar esto
   };
 }
 
