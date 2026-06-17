@@ -24,7 +24,6 @@ export interface TransferenciaResult {
 }
 
 export const transferenciaService = {
-  // POST /api/transferencia
   transferir: async (
     codigoCuentaDestino: string,
     moneda: string,
@@ -38,16 +37,17 @@ export const transferenciaService = {
     return response.data;
   },
 
-  // GET /api/transferencia/historial
   getTransactionHistory: async (limit?: number): Promise<Transaction[]> => {
-    const response = await api.get("/api/transferencia/historial");
-    const { transferencias } = response.data;
+    const [resTransferencias, resDepositos] = await Promise.all([
+      api.get("/api/transferencia/historial"),
+      api.get("/api/deposito/historial"),
+    ]);
 
-    const resultado: Transaction[] = transferencias.map((t: any) => {
+    const transferencias: Transaction[] = resTransferencias.data.transferencias.map((t: any) => {
       const esEnviada = t.tipo === "ENVIADA";
       const nombre = `${t.contraparte.nombre} ${t.contraparte.apellido}`;
       return {
-        id: t.id,
+        id: `transf-${t.id}`,
         type: esEnviada ? "ENVIADO" : "RECIBIDO",
         title: esEnviada ? `Enviado a ${nombre}` : `Recibido de ${nombre}`,
         time: t.fecha,
@@ -57,6 +57,20 @@ export const transferenciaService = {
       };
     });
 
-    return limit ? resultado.slice(0, limit) : resultado;
+    const depositos: Transaction[] = resDepositos.data.depositos.map((d: any) => ({
+      id: `dep-${d.id}`,
+      type: "DEPOSITO" as const,
+      title: "Depósito",
+      time: d.createdAt,
+      amount: `+${Number(d.monto).toFixed(2)}`,
+      status: "Completado",
+      currency: d.moneda,
+    }));
+
+    const todas = [...transferencias, ...depositos].sort(
+      (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
+    );
+
+    return limit ? todas.slice(0, limit) : todas;
   },
 };

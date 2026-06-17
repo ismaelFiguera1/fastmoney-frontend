@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/auth.store";
 import { walletService, WalletBalance } from "../../services/wallet.service";
 import { styles } from "./perfilEstilos";
@@ -6,6 +7,7 @@ import { styles } from "./perfilEstilos";
 
 export default function Perfil() {
   const { user } = useAuthStore();
+  const location = useLocation();
   const [balances, setBalances] = useState<WalletBalance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export default function Perfil() {
     };
 
     fetchProfileData();
-  }, []);
+  }, [location.pathname]);
 
   const handleCopy = (id: string) => {
     navigator.clipboard.writeText(id);
