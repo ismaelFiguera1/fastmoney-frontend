@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useAuthStore } from '../../store/auth.store'
-import { walletService } from '../../services/wallet.service'
+import { ahorroService, MetaAhorro } from '../../services/ahorro.service'
 import { styles } from './ahorrosEstilos'
 
 type Moneda = 'USD' | 'EUR' | 'ARS' | 'COP'
@@ -12,189 +11,145 @@ const simbolos: Record<Moneda, string> = {
   COP: '$',
 }
 
-interface SavingsGoal {
-  nombre: string
-  limite: number
-  divisa: Moneda
-  imagen: string | null
-  saldoAhorrado: number
-}
-
 function Ahorro() {
-  const { user, updateUser } = useAuthStore()
-  
-  // Estados para datos de saldo del usuario
+  const [meta, setMeta] = useState<MetaAhorro | null>(null)
   const [disponible, setDisponible] = useState<number>(0)
-  const [walletLoading, setWalletLoading] = useState<boolean>(true)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [walletLoading, setWalletLoading] = useState<boolean>(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  
-  // Estados del Formulario de Creación
+
+  // Estados del formulario de creación
   const [nombre, setNombre] = useState('')
   const [limite, setLimite] = useState('')
-  const [divisa, setDivisa] = useState<Moneda>((user?.moneda || 'USD').toUpperCase() as Moneda)
+  const [divisa, setDivisa] = useState<Moneda>('USD')
   const [imagen, setImagen] = useState('')
 
-  // Estados de Modales Financieros
+  // Estados de modales
   const [modalType, setModalType] = useState<'ahorrar' | 'retirar' | null>(null)
   const [montoAccion, setMontoAccion] = useState('')
   const [modalError, setModalError] = useState<string | null>(null)
-  
-  // Estado para menú de opciones (tres puntos)
+
+  // Estado menú de opciones
   const [showOptions, setShowOptions] = useState(false)
 
-  const activeGoal: SavingsGoal | null = user?.savingsGoal || null
+  const fetchMeta = async () => {
+    try {
+      setLoading(true)
+      const data = await ahorroService.getMeta()
+      setMeta(data)
+      if (data) {
+        await fetchSaldo(data.divisa)
+      }
+    } catch (err) {
+      setErrorMsg('No se pudo cargar la meta de ahorro')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  // Cargar saldo real disponible para la moneda de la meta (o la base)
-  const fetchBalance = async () => {
+  const fetchSaldo = async (divisaMeta: string) => {
     try {
       setWalletLoading(true)
-      const moneda = (user?.moneda || 'USD').toUpperCase()
-      const balances = await walletService.getBalance(moneda)
-      // Filtramos por la moneda base actual
-      const activeBalance = balances[0]?.balance || 0
-      setDisponible(activeBalance)
+      const saldo = await ahorroService.getSaldoDisponible(divisaMeta)
+      setDisponible(saldo)
     } catch (err) {
       console.error('Error al obtener saldo:', err)
-      setErrorMsg('No se pudo cargar el saldo disponible')
     } finally {
       setWalletLoading(false)
     }
   }
 
   useEffect(() => {
-    if (user) {
-      fetchBalance()
-    }
-  }, [user])
+    fetchMeta()
+  }, [])
 
-  // Manejador para crear meta de ahorro
-  const handleCrearMeta = (e: React.FormEvent) => {
+  const handleCrearMeta = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!nombre.trim() || !limite || parseFloat(limite) <= 0) return
 
-    const nuevaMeta: SavingsGoal = {
-      nombre: nombre.trim(),
-      limite: parseFloat(limite),
-      divisa: divisa,
-      imagen: imagen.trim() || null,
-      saldoAhorrado: 0,
+    try {
+      const nuevaMeta = await ahorroService.crearMeta({
+        nombre: nombre.trim(),
+        limite: parseFloat(limite),
+        divisa,
+        imagen: imagen.trim() || undefined,
+      })
+      setMeta(nuevaMeta)
+      await fetchSaldo(nuevaMeta.divisa)
+      setNombre('')
+      setLimite('')
+      setImagen('')
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || 'Error al crear la meta')
     }
-
-    updateUser({
-      savingsGoal: nuevaMeta,
-      saldoAhorrado: 0,
-      metaAhorro: nuevaMeta.limite,
-    })
-    
-    // Resetear formulario
-    setNombre('')
-    setLimite('')
-    setImagen('')
   }
 
-  // Manejador para eliminar/reiniciar la meta
-  const handleEliminarMeta = () => {
+  const handleEliminarMeta = async () => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar tu meta de ahorro actual? Se reembolsarán todos los fondos a tu saldo disponible.')) {
       setShowOptions(false)
       return
     }
-
-    // Reembolsar saldo ahorrado a saldo disponible antes de eliminar
-    if (activeGoal && activeGoal.saldoAhorrado > 0) {
-      const offsetKey = `wallet_offset_${user?.id}_${activeGoal.divisa}`
-      const currentOffset = Number(localStorage.getItem(offsetKey) || 0)
-      const newOffset = currentOffset + activeGoal.saldoAhorrado
-      localStorage.setItem(offsetKey, newOffset.toString())
+    try {
+      await ahorroService.eliminarMeta()
+      setMeta(null)
+      setDisponible(0)
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || 'Error al eliminar la meta')
     }
-
-    updateUser({
-      savingsGoal: undefined,
-      saldoAhorrado: undefined,
-      metaAhorro: undefined,
-    })
-
     setShowOptions(false)
-    fetchBalance()
   }
 
-  // Manejo de Ahorro y Retiro
   const handleConfirmarAccion = async () => {
-    if (!montoAccion || parseFloat(montoAccion) <= 0 || !activeGoal) return
+    if (!montoAccion || parseFloat(montoAccion) <= 0 || !meta) return
     const monto = parseFloat(montoAccion)
 
-    const offsetKey = `wallet_offset_${user?.id}_${activeGoal.divisa}`
-    const currentOffset = Number(localStorage.getItem(offsetKey) || 0)
+    try {
+      let metaActualizada: MetaAhorro
 
-    if (modalType === 'ahorrar') {
-      // Validamos saldo disponible suficiente
-      if (monto > disponible) {
-        setModalError('Saldo disponible insuficiente para transferir a ahorros.')
-        return
+      if (modalType === 'ahorrar') {
+        metaActualizada = await ahorroService.aportar(monto)
+      } else {
+        metaActualizada = await ahorroService.retirar(monto)
       }
 
-      // Restamos del balance disponible (offset más negativo)
-      const newOffset = currentOffset - monto
-      localStorage.setItem(offsetKey, newOffset.toString())
-
-      // Sumamos a la meta de ahorro
-      const nuevoSaldoAhorrado = activeGoal.saldoAhorrado + monto
-      updateUser({
-        savingsGoal: {
-          ...activeGoal,
-          saldoAhorrado: nuevoSaldoAhorrado,
-        },
-        saldoAhorrado: nuevoSaldoAhorrado,
-      })
-
-    } else if (modalType === 'retirar') {
-      // Validamos saldo ahorrado suficiente
-      if (monto > activeGoal.saldoAhorrado) {
-        setModalError('No tienes suficientes fondos guardados en esta meta.')
-        return
-      }
-
-      // Sumamos al balance disponible (offset más positivo)
-      const newOffset = currentOffset + monto
-      localStorage.setItem(offsetKey, newOffset.toString())
-
-      // Restamos de la meta de ahorro
-      const nuevoSaldoAhorrado = Math.max(0, activeGoal.saldoAhorrado - monto)
-      updateUser({
-        savingsGoal: {
-          ...activeGoal,
-          saldoAhorrado: nuevoSaldoAhorrado,
-        },
-        saldoAhorrado: nuevoSaldoAhorrado,
-      })
+      setMeta(metaActualizada)
+      await fetchSaldo(metaActualizada.divisa)
+      setModalType(null)
+      setMontoAccion('')
+      setModalError(null)
+    } catch (err: any) {
+      setModalError(err.response?.data?.message || 'Error al realizar la operación')
     }
-
-    // Cerrar modal y refrescar
-    setModalType(null)
-    setMontoAccion('')
-    setModalError(null)
-    await fetchBalance()
   }
 
-  // Cálculos de progreso
-  const percent = activeGoal
-    ? Math.min(Math.round((activeGoal.saldoAhorrado / activeGoal.limite) * 100), 100)
+  const percent = meta
+    ? Math.min(Math.round((Number(meta.saldoAhorrado) / Number(meta.limite)) * 100), 100)
     : 0
 
-  const simbolo = activeGoal ? simbolos[activeGoal.divisa] : '$'
+  const simbolo = meta ? simbolos[meta.divisa as Moneda] : '$'
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-purple-300">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.container}>
-      {/* Banner Superior violeta */}
+      {/* Banner Superior */}
       <div className={styles.bannerHeader} style={styles.bannerHeaderBg}>
         <div>
           <p className={styles.bannerSub}>Mis Ahorros</p>
           <h1 className={styles.bannerTitle}>
-            {activeGoal ? 'Gestioná tu meta de ahorro' : 'Comenzá a ahorrar hoy'}
+            {meta ? 'Gestioná tu meta de ahorro' : 'Comenzá a ahorrar hoy'}
           </h1>
         </div>
 
-        {/* Tres puntos de opciones sólo si hay meta activa */}
-        {activeGoal && (
+        {meta && (
           <div className="relative">
             <button
               onClick={() => setShowOptions(!showOptions)}
@@ -221,30 +176,32 @@ function Ahorro() {
         )}
       </div>
 
+      {errorMsg && (
+        <div className="mx-4 mt-4 p-3 bg-red-900/40 border border-red-500 rounded-xl text-red-300 text-sm text-center">
+          {errorMsg}
+        </div>
+      )}
+
       {/* Contenido */}
       <div className={styles.contentWrapper}>
-        {activeGoal ? (
+        {meta ? (
           <>
             {/* PANEL DE META ACTIVA */}
             <div className={styles.activeGoalCard}>
               <div className={styles.goalGradientBanner} style={styles.goalGradientBg}>
-                {/* Imagen del objetivo si existe */}
-                {activeGoal.imagen && (
+                {meta.imagen && (
                   <div className="w-56 h-36 rounded-2xl overflow-hidden mb-4 border-2 border-white/40 shadow-md bg-[#13072e] flex items-center justify-center">
                     <img
-                      src={activeGoal.imagen}
-                      alt={activeGoal.nombre}
+                      src={meta.imagen}
+                      alt={meta.nombre}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Ocultar si la URL no carga
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none' }}
                     />
                   </div>
                 )}
-                <h2 className={styles.goalName}>{activeGoal.nombre}</h2>
+                <h2 className={styles.goalName}>{meta.nombre}</h2>
                 <p className={styles.goalTarget}>
-                  Meta: {simbolo}{activeGoal.limite.toLocaleString('es-AR', { minimumFractionDigits: 2 })} {activeGoal.divisa}
+                  Meta: {simbolo}{Number(meta.limite).toLocaleString('es-AR', { minimumFractionDigits: 2 })} {meta.divisa}
                 </p>
               </div>
 
@@ -252,7 +209,7 @@ function Ahorro() {
               <div className={styles.balanceBox}>
                 <p className={styles.balanceLabel}>Dinero Actual Ahorrado</p>
                 <h3 className={styles.balanceValue}>
-                  {simbolo}{activeGoal.saldoAhorrado.toLocaleString('es-AR', { minimumFractionDigits: 2 })} <span className="text-xl font-bold text-pink-400">{activeGoal.divisa}</span>
+                  {simbolo}{Number(meta.saldoAhorrado).toLocaleString('es-AR', { minimumFractionDigits: 2 })} <span className="text-xl font-bold text-pink-400">{meta.divisa}</span>
                 </h3>
               </div>
 
@@ -263,10 +220,7 @@ function Ahorro() {
                   <span>Objetivo</span>
                 </div>
                 <div className={styles.progressBarTrack}>
-                  <div
-                    className={styles.progressBarThumb}
-                    style={{ width: `${percent}%` }}
-                  ></div>
+                  <div className={styles.progressBarThumb} style={{ width: `${percent}%` }}></div>
                 </div>
                 <p className={styles.progressPercent}>{percent}% completado</p>
               </div>
@@ -274,19 +228,13 @@ function Ahorro() {
               {/* Acciones */}
               <div className={styles.actionsRow}>
                 <button
-                  onClick={() => {
-                    setModalType('ahorrar');
-                    setModalError(null);
-                  }}
+                  onClick={() => { setModalType('ahorrar'); setModalError(null) }}
                   className={styles.btnPrimary}
                 >
                   Dinero a ahorrar $
                 </button>
                 <button
-                  onClick={() => {
-                    setModalType('retirar');
-                    setModalError(null);
-                  }}
+                  onClick={() => { setModalType('retirar'); setModalError(null) }}
                   className={styles.btnSecondary}
                 >
                   Retirar dinero
@@ -294,25 +242,24 @@ function Ahorro() {
               </div>
             </div>
 
-            {/* PANEL LATERAL DE DETALLES */}
+            {/* PANEL LATERAL */}
             <div className={styles.lateralCard}>
               <h4 className={styles.lateralTitle}>Resumen Financiero</h4>
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-2.5 border-b border-[#3e246e]/40">
                   <span className="text-xs text-purple-300/60 font-bold uppercase tracking-wider">Saldo Disponible</span>
                   <span className="text-sm font-extrabold text-white">
-                    {walletLoading ? 'Cargando...' : `${simbolo}${disponible.toLocaleString('es-AR', { minimumFractionDigits: 2 })} ${activeGoal.divisa}`}
+                    {walletLoading ? 'Cargando...' : `${simbolo}${disponible.toLocaleString('es-AR', { minimumFractionDigits: 2 })} ${meta.divisa}`}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2.5 border-b border-[#3e246e]/40">
                   <span className="text-xs text-purple-300/60 font-bold uppercase tracking-wider">Restante Meta</span>
                   <span className="text-sm font-extrabold text-pink-400">
-                    {simbolo}{Math.max(0, activeGoal.limite - activeGoal.saldoAhorrado).toLocaleString('es-AR', { minimumFractionDigits: 2 })} {activeGoal.divisa}
+                    {simbolo}{Math.max(0, Number(meta.limite) - Number(meta.saldoAhorrado)).toLocaleString('es-AR', { minimumFractionDigits: 2 })} {meta.divisa}
                   </span>
                 </div>
               </div>
 
-              {/* Tip o consejo de ahorro */}
               <div className="mt-6 p-4 bg-[#13072e] rounded-2xl border border-[#3b2073]">
                 <div className={styles.lateralTip}>
                   <div className={styles.lateralTipText}>
@@ -323,7 +270,7 @@ function Ahorro() {
             </div>
           </>
         ) : (
-          /* FORMULARIO DE CREACIÓN (SI NO TIENE META) */
+          /* FORMULARIO DE CREACIÓN */
           <div className="col-span-12">
             <div className={styles.formCard}>
               <h2 className={styles.formTitle}>Definir meta de ahorro</h2>
@@ -396,8 +343,8 @@ function Ahorro() {
         )}
       </div>
 
-      {/* MODAL DE DEPOSITAR / RETIRAR AHORRO */}
-      {modalType && activeGoal && (
+      {/* MODAL APORTAR / RETIRAR */}
+      {modalType && meta && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalCard}>
             <h3 className={styles.modalTitle}>
@@ -405,7 +352,7 @@ function Ahorro() {
             </h3>
             <p className={styles.modalDesc}>
               {modalType === 'ahorrar'
-                ? `Ingresá el monto que vas a transferir desde tu saldo disponible a tu meta: ${activeGoal.nombre}.`
+                ? `Ingresá el monto que vas a transferir desde tu saldo disponible a tu meta: ${meta.nombre}.`
                 : `Ingresá el monto que vas a retirar de tus ahorros para devolverlo a tu saldo disponible.`}
             </p>
 
@@ -418,10 +365,7 @@ function Ahorro() {
                 step="0.01"
                 placeholder="0.00"
                 value={montoAccion}
-                onChange={(e) => {
-                  setMontoAccion(e.target.value);
-                  setModalError(null);
-                }}
+                onChange={(e) => { setMontoAccion(e.target.value); setModalError(null) }}
                 className={styles.modalInput}
                 autoFocus
               />
@@ -433,11 +377,7 @@ function Ahorro() {
 
             <div className={styles.modalActions}>
               <button
-                onClick={() => {
-                  setModalType(null);
-                  setMontoAccion('');
-                  setModalError(null);
-                }}
+                onClick={() => { setModalType(null); setMontoAccion(''); setModalError(null) }}
                 className={styles.modalBtnCancel}
               >
                 Cancelar
