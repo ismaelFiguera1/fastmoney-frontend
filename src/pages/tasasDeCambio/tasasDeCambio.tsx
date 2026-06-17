@@ -31,9 +31,37 @@ export const TasaCambio: React.FC = () => {
     { codigo: 'ARS', valor: 900,  cambio24h: -3.10 },
   ]);
   const [matriz, setMatriz] = useState<Record<string, Record<string, number>>>({});
+  const [saldos, setSaldos] = useState<Record<CodigoDivisa, number>>({
+    USD: 0,
+    EUR: 0,
+    ARS: 0,
+    COP: 0,
+  });
+
+  const [conversionError, setConversionError] = useState<string | null>(null);
+  const [conversionSuccess, setConversionSuccess] = useState<boolean>(false);
+  const [conversionLoading, setConversionLoading] = useState<boolean>(false);
+
+  const cargarSaldos = () => {
+    walletService.getDesglose().then((datos) => {
+      const mapeo: Record<CodigoDivisa, number> = {
+        USD: 0,
+        EUR: 0,
+        ARS: 0,
+        COP: 0,
+      };
+      datos.forEach((item) => {
+        mapeo[item.currency as CodigoDivisa] = item.balance;
+      });
+      setSaldos(mapeo);
+    }).catch((err) => {
+      console.error('Error al cargar desglose de saldos:', err);
+    });
+  };
 
   // Carga las tasas reales del backend al montar el componente
   useEffect(() => {
+    cargarSaldos();
     walletService.getTasas().then((datos) => {
       const baseRates = datos.tasas[monedaBase] || {};
       setTasas([
@@ -61,6 +89,32 @@ export const TasaCambio: React.FC = () => {
       setResultado(cantidad * tasaDirecta);
     }
   }, [cantidad, deDivisa, aDivisa, matriz]);
+
+  const handleConvertir = async () => {
+    if (cantidad <= 0 || cantidad > saldos[deDivisa] || deDivisa === aDivisa) return;
+
+    setConversionLoading(true);
+    setConversionError(null);
+    setConversionSuccess(false);
+
+    try {
+      await walletService.convertirSaldo({
+        monto: cantidad,
+        desdeMoneda: deDivisa.toLowerCase(),
+        haciaMoneda: aDivisa.toLowerCase(),
+      });
+      setConversionSuccess(true);
+      cargarSaldos();
+      setCantidad(0);
+    } catch (err: any) {
+      console.error(err);
+      setConversionError(err.response?.data?.message || 'Ocurrió un error al realizar la conversión de saldo.');
+    } finally {
+      setConversionLoading(false);
+    }
+  };
+
+  const deshabilitarBoton = conversionLoading || cantidad <= 0 || cantidad > saldos[deDivisa] || deDivisa === aDivisa;
 
   // Manejador para efectos visuales hover sin CSS externo
   const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -121,7 +175,12 @@ export const TasaCambio: React.FC = () => {
         <h2 style={estilos.tituloConversor}>Calculadora de Cambio</h2>
         
         <div style={estilos.grupoInput}>
-          <label style={estilos.label}>Cantidad</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+            <label style={estilos.label}>Cantidad</label>
+            <span style={estilos.disponibleTexto}>
+              Disponible: {infoDivisas[deDivisa].simbolo} {saldos[deDivisa].toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </span>
+          </div>
           <input
             type="number"
             value={cantidad}
@@ -131,12 +190,16 @@ export const TasaCambio: React.FC = () => {
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={estilos.selectGrid}>
           <div style={estilos.grupoInput}>
             <label style={estilos.label}>De</label>
             <select
               value={deDivisa}
-              onChange={(e) => setDeDivisa(e.target.value as CodigoDivisa)}
+              onChange={(e) => {
+                setDeDivisa(e.target.value as CodigoDivisa);
+                setConversionSuccess(false);
+                setConversionError(null);
+              }}
               style={estilos.select}
             >
               {Object.keys(infoDivisas).map((code) => (
@@ -149,7 +212,11 @@ export const TasaCambio: React.FC = () => {
             <label style={estilos.label}>A</label>
             <select
               value={aDivisa}
-              onChange={(e) => setADivisa(e.target.value as CodigoDivisa)}
+              onChange={(e) => {
+                setADivisa(e.target.value as CodigoDivisa);
+                setConversionSuccess(false);
+                setConversionError(null);
+              }}
               style={estilos.select}
             >
               {Object.keys(infoDivisas).map((code) => (
@@ -159,6 +226,18 @@ export const TasaCambio: React.FC = () => {
           </div>
         </div>
 
+        {/* Mensajes de validación */}
+        {cantidad > saldos[deDivisa] && (
+          <p style={estilos.errorMensaje}>
+            ⚠️ Saldo insuficiente en {deDivisa}.
+          </p>
+        )}
+        {deDivisa === aDivisa && (
+          <p style={estilos.errorMensaje}>
+            ⚠️ Selecciona dos monedas distintas.
+          </p>
+        )}
+
         {/* Bloque de Resultado */}
         <div style={estilos.resultadoContenedor}>
           <div style={{ ...estilos.label, marginBottom: '4px' }}>Resultado estimado</div>
@@ -166,6 +245,27 @@ export const TasaCambio: React.FC = () => {
             {infoDivisas[aDivisa].simbolo} {resultado.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {aDivisa}
           </div>
         </div>
+
+        {/* Alertas de Resultado de Operación */}
+        {conversionSuccess && (
+          <div style={estilos.alertaExito}>
+            🎉 ¡Conversión realizada con éxito!
+          </div>
+        )}
+        {conversionError && (
+          <div style={estilos.alertaError}>
+            ❌ {conversionError}
+          </div>
+        )}
+
+        {/* Botón de Confirmación */}
+        <button
+          onClick={handleConvertir}
+          disabled={deshabilitarBoton}
+          style={deshabilitarBoton ? estilos.botonConfirmarDisabled : estilos.botonConfirmar}
+        >
+          {conversionLoading ? 'Procesando...' : 'Confirmar Conversión'}
+        </button>
       </div>
     </div>
   );
