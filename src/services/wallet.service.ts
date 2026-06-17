@@ -36,4 +36,14 @@ export const walletService = {
       { id: "cop", currency: "COP", balance: Number(desglose.cop) },
     ];
   },
+
+  // POST /api/wallet/convertir → realizar conversión de divisas
+  convertirSaldo: async (datos: {
+    monto: number;
+    desdeMoneda: string;
+    haciaMoneda: string;
+  }): Promise<any> => {
+    const response = await api.post("/api/wallet/convertir", datos);
+    return response.data;
+  },
 };
