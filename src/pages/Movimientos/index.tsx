@@ -156,6 +156,21 @@ export default function Movimientos({
     return `${months[date.getMonth()]} ${date.getFullYear()}`;
   };
 
+  // --- Cálculo de métricas reales ---
+  const totalEnviado = transactions
+    .filter((tx) => tx.type === "ENVIADO")
+    .reduce((acc, tx) => acc + Math.abs(parseFloat(tx.amount)), 0);
+
+  const totalRecibido = transactions
+    .filter((tx) => tx.type === "RECIBIDO")
+    .reduce((acc, tx) => acc + parseFloat(tx.amount), 0);
+
+  const totalConvertido = transactions
+    .filter((tx) => tx.type === "SWAP")
+    .reduce((acc, tx) => acc + Math.abs(parseFloat(tx.amount)), 0);
+
+  const operaciones = transactions.length;
+
   // --- Listado Base de Transacciones ordenadas por fecha ---
   const allTransactions: Transaction[] = [...transactions].sort((a, b) => {
     const timeA = new Date(a.time).getTime();
@@ -257,7 +272,7 @@ export default function Movimientos({
                 Total Enviado
               </span>
               <h3 className={styles.metricValueRed}>
-                -$1,250.00
+                -${totalEnviado.toFixed(2)}
               </h3>
             </div>
             <div className={styles.metricIconRed}>
@@ -272,7 +287,7 @@ export default function Movimientos({
                 Total Recibido
               </span>
               <h3 className={styles.metricValueEmerald}>
-                +$3,800.00
+                +${totalRecibido.toFixed(2)}
               </h3>
             </div>
             <div className={styles.metricIconEmerald}>
@@ -287,7 +302,7 @@ export default function Movimientos({
                 Total Convertido
               </span>
               <h3 className={styles.metricValuePurple}>
-                $950.00
+                ${totalConvertido.toFixed(2)}
               </h3>
             </div>
             <div className={styles.metricIconPurple}>
@@ -302,7 +317,7 @@ export default function Movimientos({
                 Operaciones
               </span>
               <h3 className={styles.metricValueBlack}>
-                12
+                {operaciones}
               </h3>
             </div>
             <div className={styles.metricIconGray}>

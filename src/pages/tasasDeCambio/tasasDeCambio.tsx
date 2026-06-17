@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { estilos, infoDivisas } from '../tasasDeCambio/tasasEstilos';
 import { walletService } from '../../services/wallet.service';
+import { useAuthStore } from '../../store/auth.store';
 
 // Tipado estricto para las 4 divisas requeridas
 type CodigoDivisa = 'USD' | 'ARS' | 'COP' | 'EUR';
 
 interface TasaInfo {
   codigo: CodigoDivisa;
-  valorRespectoUSD: number;
+  valor: number;
   cambio24h: number; // Porcentaje simulado de variación
 }
 
@@ -20,44 +21,46 @@ const CAMBIO_24H_SIMULADO: Record<CodigoDivisa, number> = {
 };
 
 export const TasaCambio: React.FC = () => {
+  const { user } = useAuthStore();
+  const monedaBase = (user?.moneda || 'USD').toUpperCase();
+
   const [tasas, setTasas] = useState<TasaInfo[]>([
-    { codigo: 'USD', valorRespectoUSD: 1, cambio24h: 0.15 },
-    { codigo: 'EUR', valorRespectoUSD: 0.92, cambio24h: -0.22 },
-    { codigo: 'COP', valorRespectoUSD: 4000, cambio24h: 1.45 },
-    { codigo: 'ARS', valorRespectoUSD: 900, cambio24h: -3.10 },
+    { codigo: 'USD', valor: 1,    cambio24h: 0.15  },
+    { codigo: 'EUR', valor: 0.92, cambio24h: -0.22 },
+    { codigo: 'COP', valor: 4000, cambio24h: 1.45  },
+    { codigo: 'ARS', valor: 900,  cambio24h: -3.10 },
   ]);
+  const [matriz, setMatriz] = useState<Record<string, Record<string, number>>>({});
 
   // Carga las tasas reales del backend al montar el componente
   useEffect(() => {
     walletService.getTasas().then((datos) => {
+      const baseRates = datos.tasas[monedaBase] || {};
       setTasas([
-        { codigo: 'USD', valorRespectoUSD: datos.tasas.USD, cambio24h: CAMBIO_24H_SIMULADO.USD },
-        { codigo: 'EUR', valorRespectoUSD: datos.tasas.EUR, cambio24h: CAMBIO_24H_SIMULADO.EUR },
-        { codigo: 'COP', valorRespectoUSD: datos.tasas.COP, cambio24h: CAMBIO_24H_SIMULADO.COP },
-        { codigo: 'ARS', valorRespectoUSD: datos.tasas.ARS, cambio24h: CAMBIO_24H_SIMULADO.ARS },
+        { codigo: 'USD', valor: baseRates.USD ?? 1,    cambio24h: CAMBIO_24H_SIMULADO.USD },
+        { codigo: 'EUR', valor: baseRates.EUR ?? 0.92, cambio24h: CAMBIO_24H_SIMULADO.EUR },
+        { codigo: 'COP', valor: baseRates.COP ?? 4000, cambio24h: CAMBIO_24H_SIMULADO.COP },
+        { codigo: 'ARS', valor: baseRates.ARS ?? 900,  cambio24h: CAMBIO_24H_SIMULADO.ARS },
       ]);
+      setMatriz(datos.tasas);
     }).catch(() => {
       // Si falla la API, los valores hardcodeados del estado inicial se mantienen
     });
-  }, []);
+  }, [monedaBase]);
 
   // Estados para la calculadora/conversor
   const [cantidad, setCantidad] = useState<number>(100);
-  const [deDivisa, setDeDivisa] = useState<CodigoDivisa>('USD');
+  const [deDivisa, setDeDivisa] = useState<CodigoDivisa>(monedaBase as CodigoDivisa);
   const [aDivisa, setADivisa] = useState<CodigoDivisa>('COP');
   const [resultado, setResultado] = useState<number>(0);
 
-  // Lógica de conversión dinámica
+  // Lógica de conversión dinámica — usa la tasa directa de la matriz
   useEffect(() => {
-    const tasaOrigen = tasas.find(t => t.codigo === deDivisa)?.valorRespectoUSD || 1;
-    const tasaDestino = tasas.find(t => t.codigo === aDivisa)?.valorRespectoUSD || 1;
-
-    // Convertir a USD base y luego a la divisa destino
-    const cantidadEnUSD = cantidad / tasaOrigen;
-    const calculoFinal = cantidadEnUSD * tasaDestino;
-    
-    setResultado(calculoFinal);
-  }, [cantidad, deDivisa, aDivisa, tasas]);
+    const tasaDirecta = matriz[deDivisa]?.[aDivisa];
+    if (tasaDirecta !== undefined) {
+      setResultado(cantidad * tasaDirecta);
+    }
+  }, [cantidad, deDivisa, aDivisa, matriz]);
 
   // Manejador para efectos visuales hover sin CSS externo
   const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -99,7 +102,7 @@ export const TasaCambio: React.FC = () => {
               </div>
 
               <div style={estilos.valorDivisa}>
-                {info.simbolo} {tasa.valorRespectoUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {info.simbolo} {tasa.valor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: tasa.valor < 0.01 ? 6 : 2 })}
               </div>
 
               <div style={{

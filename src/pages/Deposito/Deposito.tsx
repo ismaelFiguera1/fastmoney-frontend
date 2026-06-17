@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { styles } from './depositoEstilos';
+import { depositoService } from '../../services/deposito.service';
 
 type Moneda = 'USD' | 'EUR' | 'ARS' | 'COP';
 
@@ -27,6 +28,8 @@ function Deposito() {
   const [monto, setMonto] = useState('');
   const [focusInput, setFocusInput] = useState(false);
   const [hoverBtn, setHoverBtn] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const simbolo = simbolos[moneda];
   const esInvalido = !monto || parseFloat(monto) <= 0;
@@ -40,39 +43,46 @@ function Deposito() {
     }).format(valor);
   };
 
-  const handleConfirmar = () => {
+  const handleConfirmar = async () => {
     if (esInvalido) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await depositoService.depositar(moneda, parseFloat(monto));
 
-    // Crear la notificación con el formato exacto de tu Dashboard
-    const nuevaNotificacion: Notificacion = {
-      id: Date.now(),
-      tipo: 'DEPOSITO',
-      titulo: '¡Depósito exitoso!',
-      mensaje: `Has depositado ${obtenerMontoFormateado(monto)} a la moneda ${moneda.toLowerCase()}`,
-      nombre: 'FastMoney System',
-      monto: parseFloat(monto),
-      moneda: moneda,
-      createdAt: 'Hace 1 min'
-    };
+      const nuevaNotificacion: Notificacion = {
+        id: Date.now(),
+        tipo: 'DEPOSITO',
+        titulo: '¡Depósito exitoso!',
+        mensaje: `Has depositado ${obtenerMontoFormateado(monto)} a la moneda ${moneda.toLowerCase()}`,
+        nombre: 'FastMoney System',
+        monto: parseFloat(monto),
+        moneda: moneda,
+        createdAt: 'Hace 1 min',
+      };
+      const actuales = JSON.parse(localStorage.getItem('fastmoney_notificaciones') || '[]');
+      localStorage.setItem('fastmoney_notificaciones', JSON.stringify([nuevaNotificacion, ...actuales]));
 
-    // PERSISTENCIA: Guardar en el LocalStorage para que el Dashboard lo lea
-    const actuales = JSON.parse(localStorage.getItem('fastmoney_notificaciones') || '[]');
-    const actualizadas = [nuevaNotificacion, ...actuales];
-    localStorage.setItem('fastmoney_notificaciones', JSON.stringify(actualizadas));
-    
-    setStep('confirm');
+      setStep('confirm');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al realizar el depósito');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleNuevo = () => {
     setStep('form');
     setMonto('');
+    setMoneda('USD');
+    setError(null);
   };
 
   return (
     <div style={styles.background}>
       <div style={styles.glow1}></div>
       <div style={styles.glow2}></div>
-      
+
       <div style={{ ...styles.particle, top: '15%', left: '10%' }}></div>
       <div style={{ ...styles.particle, top: '70%', left: '18%' }}></div>
 
@@ -100,8 +110,8 @@ function Deposito() {
               <p style={styles.saldoValor}>Saldo {moneda} actualizado ✓</p>
             </div>
 
-            <button 
-              onClick={handleNuevo} 
+            <button
+              onClick={handleNuevo}
               onMouseEnter={() => setHoverBtn(true)}
               onMouseLeave={() => setHoverBtn(false)}
               style={{
@@ -130,11 +140,11 @@ function Deposito() {
                   <option value="ARS">🇦🇷 ARS</option>
                   <option value="COP">🇨🇴 COP</option>
                 </select>
-                
+
                 <div style={{
                   ...styles.montoInputWrapper,
                   border: focusInput ? '1px solid #A855F7' : '1px solid rgba(255, 255, 255, 0.1)',
-                  boxShadow: focusInput ? '0 0 14px rgba(168, 85, 247, 0.3)' : 'none'
+                  boxShadow: focusInput ? '0 0 14px rgba(168, 85, 247, 0.3)' : 'none',
                 }}>
                   <span style={styles.montoSymbol}>{simbolo}</span>
                   <input
@@ -150,21 +160,27 @@ function Deposito() {
               </div>
             </div>
 
+            {error && (
+              <p style={{ color: '#f87171', fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '1rem', textAlign: 'center' }}>
+                {error}
+              </p>
+            )}
+
             <button
               onClick={handleConfirmar}
-              disabled={esInvalido}
+              disabled={esInvalido || loading}
               onMouseEnter={() => setHoverBtn(true)}
               onMouseLeave={() => setHoverBtn(false)}
               style={{
                 ...styles.btnDepositar,
-                opacity: esInvalido ? 0.4 : 1,
-                cursor: esInvalido ? 'not-allowed' : 'pointer',
-                background: hoverBtn && !esInvalido 
-                  ? 'linear-gradient(135deg, #8B5CF6 0%, #5850EC 100%)' 
+                opacity: esInvalido || loading ? 0.4 : 1,
+                cursor: esInvalido || loading ? 'not-allowed' : 'pointer',
+                background: hoverBtn && !esInvalido && !loading
+                  ? 'linear-gradient(135deg, #8B5CF6 0%, #5850EC 100%)'
                   : 'linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)',
               }}
             >
-              Depositar
+              {loading ? 'Procesando...' : 'Depositar'}
             </button>
           </div>
         )}
