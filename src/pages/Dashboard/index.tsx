@@ -4,6 +4,7 @@ import { useAuthStore } from "../../store/auth.store";
 import { ROUTES } from "../../constants/routes";
 import Movimientos from "../Movimientos";
 import { walletService } from "../../services/wallet.service";
+import { ahorroService, MetaAhorro } from "../../services/ahorro.service";
 import { styles } from "./dashboardEstilos";
 // Tu importación personalizada de notificaciones
 import { NotificacionesComponent } from "../Notificaciones/notificaciones";
@@ -25,6 +26,7 @@ function Dashboard() {
   const [isBalanceHidden, setIsBalanceHidden] = useState(false);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [balance, setBalance] = useState<number>(0);
+  const [meta, setMeta] = useState<MetaAhorro | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,12 +34,17 @@ function Dashboard() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const balanceRes = await walletService.getBalance(currency);
+        // Hacemos las llamadas en paralelo para mejor rendimiento
+        const [balanceRes, metaRes] = await Promise.all([
+          walletService.getBalance(currency),
+          ahorroService.getMeta(),
+        ]);
 
         // El backend devuelve el saldo total ya convertido en el primer elemento
         const userBalance = balanceRes[0]?.balance || 0;
 
         setBalance(userBalance);
+        setMeta(metaRes);
         setError(null);
       } catch (err) {
         setError("Error al cargar los datos del balance");
@@ -70,17 +77,15 @@ function Dashboard() {
     return amount * rate;
   };
 
-  // Si user?.saldoAhorrado está definido, está en la moneda de usuario (userCurrency). Lo convertimos.
-  // Si no, usamos userRealSaldo * 0.2 (que ya está convertido en la divisa actual).
-  const userRealSavings =
-    user?.saldoAhorrado !== undefined
-      ? convertFromTo(user.saldoAhorrado, userCurrency, currency)
-      : userRealSaldo * 0.2;
+  // Si meta está definido, convertimos su saldo a la divisa del dashboard.
+  const userRealSavings = meta
+    ? convertFromTo(Number(meta.saldoAhorrado), meta.divisa, currency)
+    : 0;
 
-  // La meta de ahorro está en la moneda del usuario (userCurrency). La convertimos.
-  const savingsGoal = user?.metaAhorro !== undefined 
-    ? convertFromTo(user.metaAhorro, userCurrency, currency) 
-    : convertFromTo(10000, userCurrency, currency);
+  // La meta de ahorro real de meta.limite convertida a la divisa del dashboard.
+  const savingsGoal = meta
+    ? convertFromTo(Number(meta.limite), meta.divisa, currency)
+    : 0;
 
   // Mapeo de símbolos de moneda
   const currencySymbols = {
@@ -125,10 +130,9 @@ function Dashboard() {
   }
 
   // Porcentaje de ahorro respecto a la meta
-  const savingsPercentage = Math.min(
-    Math.round((userRealSavings / savingsGoal) * 100),
-    100,
-  );
+  const savingsPercentage = savingsGoal > 0
+    ? Math.min(Math.round((userRealSavings / savingsGoal) * 100), 100)
+    : 0;
 
   return (
     <div className={styles.container}>
@@ -252,25 +256,47 @@ function Dashboard() {
               </span>
             </div>
 
-            <div className={styles.balanceValueWrapper}>
-              <span className={styles.currencySymbol}>
-                {currentSymbol}
-              </span>
-              <span className={styles.balanceValue}>
-                {isBalanceHidden ? "••••••" : getDisplayBalance(userRealSavings)}
-              </span>
-            </div>
+            {!meta ? (
+              <div className="flex flex-col gap-2 mt-3">
+                <p className="text-sm text-gray-500 font-semibold leading-relaxed">
+                  No tienes una meta de ahorro activa.
+                </p>
+              </div>
+            ) : (
+              <div className={styles.balanceValueWrapper}>
+                <span className={styles.currencySymbol}>
+                  {currentSymbol}
+                </span>
+                <span className={styles.balanceValue}>
+                  {isBalanceHidden ? "••••••" : getDisplayBalance(userRealSavings)}
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className={styles.currencySelectorWrapper}>
-            <p className={styles.goalText}>
-              Meta: {currentSymbol} {getDisplayBalance(savingsGoal)}
-            </p>
-            {/* Barra de progreso de la meta */}
-            <div className={styles.progressBarTrack}>
-              <div className={styles.progressBarThumb} style={{ width: `${savingsPercentage}%` }}></div>
+          {!meta ? (
+            <div className="mt-4 self-start">
+              <Link
+                to={ROUTES.SAVINGS}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                <span>Comenzar a ahorrar</span>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
             </div>
-          </div>
+          ) : (
+            <div className={styles.currencySelectorWrapper}>
+              <p className={styles.goalText}>
+                Meta: {currentSymbol} {getDisplayBalance(savingsGoal)}
+              </p>
+              {/* Barra de progreso de la meta */}
+              <div className={styles.progressBarTrack}>
+                <div className={styles.progressBarThumb} style={{ width: `${savingsPercentage}%` }}></div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
