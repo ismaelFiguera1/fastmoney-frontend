@@ -1,37 +1,57 @@
 import React, { useState, useEffect } from "react";
-
-// 1. Definimos la estructura exacta de lo que guardamos al transferir o depositar
-interface Notificacion {
-  id: number;
-  tipo: "DEPOSITO" | "TRANSFERENCIA";
-  titulo: string;
-  mensaje: string;
-  nombre: string;
-  monto: number;
-  moneda: string;
-  createdAt: string;
-}
+import { notificacionService, NotificacionAPI } from "../../services/notificacion.service";
 
 export function NotificacionesComponent() {
-  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
+  const [notificaciones, setNotificaciones] = useState<NotificacionAPI[]>([]);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
 
-  // 2. Al cargar el Dashboard, leemos las notificaciones reales del localStorage
-  useEffect(() => {
-    const cargadas = JSON.parse(localStorage.getItem("fastmoney_notificaciones") || "[]");
-    setNotificaciones(cargadas);
-  }, [mostrarDropdown]); // Se actualiza cada vez que el usuario abre la campana
+  // Carga las notificaciones reales desde el backend
+  const cargarNotificaciones = async () => {
+    try {
+      const data = await notificacionService.getNotificaciones();
+      setNotificaciones(data);
+    } catch (err) {
+      console.error("Error al cargar notificaciones:", err);
+    }
+  };
 
-  // Función para el botón "Marcar leídas" que se ve en tu captura
-  const marcarComoLeidas = () => {
-    localStorage.setItem("fastmoney_notificaciones", JSON.stringify([]));
-    setNotificaciones([]);
+  // Carga inicial al montar el componente
+  useEffect(() => {
+    cargarNotificaciones();
+  }, []);
+
+  // Refresca cada vez que se abre el dropdown
+  useEffect(() => {
+    if (mostrarDropdown) {
+      cargarNotificaciones();
+    }
+  }, [mostrarDropdown]);
+
+  const noLeidas = notificaciones.filter((n) => !n.leida).length;
+
+  const marcarComoLeidas = async () => {
+    try {
+      await notificacionService.marcarLeidas();
+      setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
+    } catch (err) {
+      console.error("Error al marcar como leídas:", err);
+    }
+  };
+
+  // Formatea la fecha relativa simple
+  const formatearTiempo = (fecha: string) => {
+    const diff = Date.now() - new Date(fecha).getTime();
+    const minutos = Math.floor(diff / 60000);
+    if (minutos < 1) return "Hace un momento";
+    if (minutos < 60) return `Hace ${minutos} min`;
+    const horas = Math.floor(minutos / 60);
+    if (horas < 24) return `Hace ${horas} h`;
+    const dias = Math.floor(horas / 24);
+    return `Hace ${dias} d`;
   };
 
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
-      
-      {/* BOTÓN DE LA CAMPANITA (El que tiene el número '2' rojo en tu imagen) */}
       <button
         onClick={() => setMostrarDropdown(!mostrarDropdown)}
         style={{
@@ -47,13 +67,11 @@ export function NotificacionesComponent() {
           alignItems: "center"
         }}
       >
-        {/* Icono de Campana SVG */}
         <svg style={{ width: "22px", height: "22px" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
 
-        {/* Burbuja Roja Dinámica: Solo sale si hay notificaciones reales pendientes */}
-        {notificaciones.length > 0 && (
+        {noLeidas > 0 && (
           <span
             style={{
               position: "absolute",
@@ -67,12 +85,11 @@ export function NotificacionesComponent() {
               borderRadius: "50%"
             }}
           >
-            {notificaciones.length}
+            {noLeidas}
           </span>
         )}
       </button>
 
-      {/* EL RECUADRO BLANCO DE TU CAPTURA (Dropdown) */}
       {mostrarDropdown && (
         <div
           style={{
@@ -89,7 +106,6 @@ export function NotificacionesComponent() {
             fontFamily: "sans-serif"
           }}
         >
-          {/* Header del recuadro */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
             <h4 style={{ margin: 0, fontWeight: "700", fontSize: "15px", color: "#0F172A" }}>Notificaciones</h4>
             <button
@@ -107,7 +123,6 @@ export function NotificacionesComponent() {
             </button>
           </div>
 
-          {/* LISTA DINÁMICA (Aquí borramos el texto fijo y mapeamos el arreglo real) */}
           <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "240px", overflowY: "auto" }}>
             {notificaciones.length === 0 ? (
               <p style={{ fontSize: "13px", color: "#64748B", margin: "10px 0", textAlign: "center" }}>
@@ -120,14 +135,16 @@ export function NotificacionesComponent() {
                   style={{
                     borderBottom: "1px solid #F1F5F9",
                     paddingBottom: "10px",
-                    textAlign: "left"
+                    textAlign: "left",
+                    opacity: notif.leida ? 0.6 : 1,
                   }}
                 >
-                  {/* Aquí se imprime el texto dinámico del envío o depósito */}
                   <p style={{ margin: "0 0 4px 0", fontSize: "13px", color: "#334155", lineHeight: "1.4" }}>
                     {notif.mensaje}
                   </p>
-                  <span style={{ fontSize: "11px", color: "#94A3B8" }}>{notif.createdAt}</span>
+                  <span style={{ fontSize: "11px", color: "#94A3B8" }}>
+                    {formatearTiempo(notif.createdAt)}
+                  </span>
                 </div>
               ))
             )}
