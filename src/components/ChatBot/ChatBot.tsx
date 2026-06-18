@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Message } from './ChatBot.types';
 import * as S from './ChatBotStyles';
+import api from '../../services/api';
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -41,12 +42,8 @@ export function ChatBot() {
     setInputValue('');
 
     try {
-      const res = await fetch('/api/chatbot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mensaje: userMessage.text }),
-      });
-      const data = await res.json();
+      const res = await api.post('/api/chatbot', { mensaje: userMessage.text });
+      const data = res.data;
       const botMessage: Message = {
         id: `bot-${Date.now()}`,
         sender: 'bot',
