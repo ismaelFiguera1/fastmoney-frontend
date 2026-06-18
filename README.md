@@ -101,7 +101,7 @@ fastmoney-frontend/
 
 1. **Clonar el repositorio**:
    ```bash
-   git clone https://github.com/LeonelFernandez01/fastmoney-frontend.git
+   git clone https://github.com/ismaelFiguera1/fastmoney-frontend.git
    cd fastmoney-frontend
    ```
 
