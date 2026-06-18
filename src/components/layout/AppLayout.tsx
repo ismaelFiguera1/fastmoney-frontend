@@ -93,9 +93,7 @@ function AppLayout() {
         <div className="p-6">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-purple-600">
-              <span className="text-white text-lg font-bold">⚡</span>
-            </div>
+            <img src="/logo.svg" alt="FastMoney Logo" className="w-9 h-9 object-contain" />
             <span className="text-purple-900 font-extrabold text-xl tracking-tight">FastMoney</span>
           </div>
 

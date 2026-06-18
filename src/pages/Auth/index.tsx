@@ -90,9 +90,7 @@ function Auth() {
       <div className={styles.leftPanel} style={styles.leftPanelBg}>
 
         <div className={styles.logoWrapper}>
-          <div className={styles.logoIconContainer} style={styles.logoBg}>
-            <span className={styles.logoEmoji}>⚡</span>
-          </div>
+          <img src="/logo.svg" alt="FastMoney Logo" className="w-9 h-9 object-contain" />
           <span className={styles.logoText}>FastMoney</span>
         </div>
 
