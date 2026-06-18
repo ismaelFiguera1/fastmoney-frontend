@@ -52,6 +52,7 @@ export const styles = {
   formTitle: 'text-2xl font-extrabold text-gray-900 mb-1 tracking-tight',
   formSub: 'text-gray-400 text-sm mb-6',
   errorBox: 'bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-4',
+  successBox: 'bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl px-4 py-3 mb-4',
   inputRow: 'grid grid-cols-2 gap-3 mb-3',
   label: 'block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1',
   input: 'w-full bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition',

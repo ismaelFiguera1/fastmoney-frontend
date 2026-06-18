@@ -13,6 +13,7 @@ function Auth() {
   const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const [form, setForm] = useState({
     name: '',
@@ -26,6 +27,7 @@ function Auth() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
     setError(null)
+    setSuccessMessage(null)
   }
 
   const handleLogin = async () => {
@@ -74,8 +76,19 @@ function Auth() {
       return setError('Las contraseñas no coinciden')
     try {
       setLoading(true)
+      setError(null)
+      setSuccessMessage(null)
       await authService.register(form.name, form.lastName, form.email, form.password, form.moneda)
+      setSuccessMessage('¡Usuario registrado exitosamente! Ya te registraste, ahora inicia sesión aquí.')
       setIsLogin(true)
+      setForm({
+        name: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        moneda: 'USD',
+      })
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al registrarse')
     } finally {
@@ -139,12 +152,12 @@ function Auth() {
         {/* Toggle */}
         <div className={styles.toggleContainer}>
           <button
-            onClick={() => { setIsLogin(true); setError(null) }}
+            onClick={() => { setIsLogin(true); setError(null); setSuccessMessage(null) }}
             className={styles.toggleButton(isLogin)}>
             Iniciar sesión
           </button>
           <button
-            onClick={() => { setIsLogin(false); setError(null) }}
+            onClick={() => { setIsLogin(false); setError(null); setSuccessMessage(null) }}
             className={styles.toggleButton(!isLogin)}>
             Crear cuenta
           </button>
@@ -167,6 +180,13 @@ function Auth() {
         {error && (
           <div className={styles.errorBox}>
             {error}
+          </div>
+        )}
+
+        {/* Success */}
+        {successMessage && (
+          <div className={styles.successBox}>
+            {successMessage}
           </div>
         )}
 
