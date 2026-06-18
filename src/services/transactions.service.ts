@@ -24,12 +24,28 @@ export interface TransferenciaResult {
   };
 }
 
+const isMockMode = () => localStorage.getItem('token') === 'mock-token-development-only';
+
 export const transferenciaService = {
   transferir: async (
     codigoCuentaDestino: string,
     moneda: string,
     monto: number
   ): Promise<TransferenciaResult> => {
+    if (isMockMode()) {
+      return {
+        mensaje: "Transferencia realizada correctamente (Mock)",
+        detalle: {
+          montoEnviado: monto,
+          comision: 0,
+          totalDescontado: monto,
+          moneda,
+          transferenciaId: "mock-tx-123",
+          fecha: new Date().toISOString(),
+          nombreDestinatario: "Usuario Destinatario de Prueba",
+        },
+      };
+    }
     const response = await api.post("/api/transferencia", {
       codigoCuentaDestino,
       moneda,
@@ -39,6 +55,14 @@ export const transferenciaService = {
   },
 
   getTransactionHistory: async (limit?: number): Promise<Transaction[]> => {
+    if (isMockMode()) {
+      const mockHistory: Transaction[] = [
+        { id: "mock-tx-1", type: "ENVIADO", title: "Enviado a Pepo Pérez", time: new Date().toISOString(), amount: "-150.00", status: "Completado", currency: "USD" },
+        { id: "mock-tx-2", type: "RECIBIDO", title: "Recibido de Juanda Gómez", time: new Date(Date.now() - 3600000).toISOString(), amount: "+500.00", status: "Completado", currency: "USD" },
+        { id: "mock-tx-3", type: "DEPOSITO", title: "Depósito", time: new Date(Date.now() - 86400000).toISOString(), amount: "+1000.00", status: "Completado", currency: "USD" },
+      ];
+      return limit ? mockHistory.slice(0, limit) : mockHistory;
+    }
     const [resTransferencias, resDepositos] = await Promise.all([
       api.get("/api/transferencia/historial"),
       api.get("/api/deposito/historial"),
